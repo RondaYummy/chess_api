@@ -73,7 +73,13 @@ export class ChessService {
 
     const chess = new Chess(game.boardState);
 
-    const moveResult = chess.move({ from: data.from, to: data.to, promotion: data.promotion });
+    let moveResult;
+    if (data.to === 'O-O' || data.to === 'O-O-O') {
+      console.log('Castling move detected!');
+      moveResult = chess.move(data.to);
+    } else {
+      moveResult = chess.move({ from: data.from, to: data.to, promotion: data.promotion });
+    }
 
     if (chess.isCheckmate()) {
       // isCheckmate() МАТ
