@@ -60,16 +60,6 @@ export class GameGateway {
     }
   }
 
-  @SubscribeMessage('moves')
-  async moves(@MessageBody() data: { square: Square, gameId: string; }): Promise<void> {
-    const moves = await this.chessService.moves(data.square, data.gameId);
-    // Модифікуємо масив moves, щоб залишити лише останні два символи, якщо довжина більше 2
-    const modifiedMoves = moves.map(move => {
-      return move.length > 2 ? move.slice(-2) : move; // Вибираємо останні два символи або залишаємо без змін
-    });
-    this.server.emit('moves', modifiedMoves);
-  }
-
   @SubscribeMessage('subscribeToGame')
   async handleSubscribeToGame(@MessageBody() data: { gameId: string; }): Promise<void> {
     const gameId = data.gameId;

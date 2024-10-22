@@ -62,13 +62,6 @@ export class ChessService {
     return chess.board();
   }
 
-  async moves(square: Square, gameId: string): Promise<string[]> {
-    const game = await this.getGameById(gameId);
-    const chess = new Chess(game.boardState);
-    const moves = chess.moves({ square });
-    return moves;
-  }
-
   async handleMove(data: { from?: string; to?: string; userId?: string; gameId?: string; promotion?: string; }) {
     const game = await this.getGameById(data.gameId);
     if (!game) {
