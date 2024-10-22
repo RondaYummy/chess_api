@@ -14,19 +14,34 @@ export class GameGateway {
   @WebSocketServer()
   server: Server;
 
-  private connectedUsers: { userId: string; socketId: string; }[] = [];
+  private connectedUsers: { userId: string; socketId: string; timeoutId?: NodeJS.Timeout; }[] = [];
+  private leftUsers: { userId: string; socketId: string; timeoutId?: NodeJS.Timeout; }[] = [];
   private queue: { userId: string; gameType: string; }[] = [];
 
   constructor(private chessService: ChessService) { }
 
   handleConnection(socket: Socket) {
     console.log(`User connected: ${socket.id}`);
-    this.connectedUsers.push({ userId: '', socketId: socket.id });
+    const userId = socket.handshake.query.userId as string;
+    this.connectedUsers.push({ userId: userId, socketId: socket.id });
     console.log(`Connected users count: ${this.connectedUsers.length}`);
+
+    const clearTimeoutUser = this.leftUsers.find(user => user.userId === userId);
+    clearTimeout(clearTimeoutUser?.timeoutId);
+    this.leftUsers = this.leftUsers.filter(user => user.userId !== userId);
   }
 
   handleDisconnect(socket: Socket) {
     console.log(`User disconnected: ${socket.id}`);
+    const user = this.connectedUsers.find(user => user.socketId === socket.id);
+
+    if (user) {
+      user.timeoutId = setTimeout(() => {
+        console.log(`User ${user.userId} has timed out and lost the game.`);
+      }, 13000); // 13 секунд
+      this.leftUsers.push(user);
+    }
+
     this.connectedUsers = this.connectedUsers.filter(user => user.socketId !== socket.id);
   }
 
@@ -72,7 +87,7 @@ export class GameGateway {
   }
 
   @SubscribeMessage('move')
-  async handleMove(@MessageBody() data: { from: string; to: string; userId: string; gameId: string; }) {
+  async handleMove(@MessageBody() data: { from: string; to: string; userId: string; gameId: string; promotion?: string; }) {
     // Перевірка, що всі дані надійшли
     if (!data?.userId || !data?.from || !data?.to || !data?.gameId) {
       console.error('Missing data!');

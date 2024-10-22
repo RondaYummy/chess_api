@@ -23,11 +23,11 @@ export interface DatabaseSchema {
   users: {
     id: string; // uuid
     telegramId: number; // ID користувача в Telegram
-    username: string | null; // Ім'я користувача
-    login: string | null; // Логін користувача
-    password: string | null; // Пароль користувача
-    firstName: string | null; // Ім'я
-    lastName: string | null; // Прізвище
+    username: string | null;
+    login: string | null;
+    password: string | null;
+    firstName: string | null;
+    lastName: string | null;
     languageCode: string | null; // Код мови
     profilePicture: string | null; // URL профільного зображення
     createdAt: Date; // Дата створення користувача

@@ -47,6 +47,31 @@ export class AuthController {
     res.send({ user: { username } });
   }
 
+  @Post('profile')
+  async profile(
+    @Req() req: FastifyRequest,
+    @Res() res: FastifyReply
+  ) {
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).send({ message: 'Unauthorized' });
+    }
+
+    const user = await this.db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', '=', userId)
+      .executeTakeFirst();
+
+    if (!user) {
+      return res.status(404).send({ message: 'User not found' });
+    }
+
+    res.send({
+      user,
+    });
+  }
+
   @Post('login')
   async login(
     @Body() body: { username: string; password: string; },
@@ -64,13 +89,6 @@ export class AuthController {
     }
 
     req.session.userId = user.id; // Save user ID to session
-    req.session.authenticated = true;
-    // const useSecure = this.configService.get<string>('SECURE_COOKIES') === 'true';
-    // res.setCookie('session', req.session.sessionId, {
-    //   path: '/',
-    //   httpOnly: true,
-    //   secure: false, // true in production
-    // });
     console.log(req.session);
 
     res.send({
