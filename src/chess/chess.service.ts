@@ -112,6 +112,7 @@ export class ChessService {
 
     return {
       success: true,
+      playerId: data.userId,
       move: {
         from: moveResult.from,
         to: moveResult.to,
