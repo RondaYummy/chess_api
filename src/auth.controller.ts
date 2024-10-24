@@ -68,7 +68,14 @@ export class AuthController {
     }
 
     res.send({
-      user,
+      user: {
+        username: user.username,
+        firstName: user.firstName,
+        id: user.id,
+        lastName: user.lastName,
+        profilePicture: user.profilePicture,
+        telegramId: user.telegramId,
+      },
     });
   }
 
@@ -89,7 +96,6 @@ export class AuthController {
     }
 
     req.session.userId = user.id; // Save user ID to session
-    console.log(req.session);
 
     res.send({
       user: {
