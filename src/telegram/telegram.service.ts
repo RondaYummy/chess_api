@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Api, Bot, Context, RawApi } from 'grammy';
 
 @Injectable()
 export class TelegramService {
   readonly bot: Bot<Context, Api<RawApi>>;
 
-  constructor() {
+  constructor(private configService: ConfigService) {
     try {
-      this.bot = new Bot<Context>('7576109481:AAFJqAu2_Bk3wCmxLR5q1Ge_UjJpKFapi3g');
+      this.bot = new Bot<Context>(this.configService.get<string>('TELEGRAM_BOT_TOKEN'));
 
       // FIRST COMMAND "/START"
       this.bot.command('start', (msg) => {
         this.bot.api.sendMessage(msg.chatId, '♟️ Chess | Levych Bot – Ваша гра в шахи у Telegram!', {
           reply_markup: {
-            inline_keyboard: [[{ text: '👉 Відкрити 👈', web_app: { url: 'https://c0a8-193-19-255-98.ngrok-free.app' } }]]
+            inline_keyboard: [[{ text: '👉 Відкрити 👈', web_app: { url: this.configService.get<string>('BASE_WEB_APP_URL') } }]]
           }
         });
       });

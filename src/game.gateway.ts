@@ -22,7 +22,6 @@ export class GameGateway {
   handleConnection(socket: Socket) {
     console.log(`User connected: ${socket.id}`);
     const userId = socket.handshake.query.userId as string;
-    console.log(userId, 'userId');
     this.connectedUsers.push({ userId: userId, socketId: socket.id });
     console.log(`Connected users count: ${this.connectedUsers.length}`);
 

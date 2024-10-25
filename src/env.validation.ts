@@ -20,7 +20,21 @@ class EnvironmentVariables {
   @IsBoolean()
   @IsNotEmpty()
   SECURE_COOKIES: boolean;
-
+  @IsString()
+  @IsNotEmpty()
+  DATABASE_HOST: string;
+  @IsString()
+  @IsNotEmpty()
+  DATABASE_NAME: string;
+  @IsString()
+  @IsNotEmpty()
+  DATABASE_PASSWORD: string;
+  @IsString()
+  @IsNotEmpty()
+  DATABASE_TYPE: string;
+  @IsNumber()
+  @IsNotEmpty()
+  DATABASE_PORT: number;
 }
 
 export function validate(config: Record<string, unknown>) {

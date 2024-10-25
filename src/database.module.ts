@@ -2,18 +2,21 @@ import { Module } from '@nestjs/common';
 import { Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { DatabaseSchema } from './database.schema';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
+  imports: [ConfigModule],
   providers: [
     {
       provide: 'DB_CONNECTION',
-      useFactory: async () => {
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
         const pool = new Pool({
-          host: 'localhost',
-          port: 5432,
-          database: 'chess_db',
-          user: 'postgres',
-          password: '121314Qq',
+          host: configService.get<string>('DATABASE_HOST'),
+          user: configService.get<string>('DATABASE_USER'),
+          password: configService.get<string>('DATABASE_PASSWORD'),
+          database: configService.get<string>('DATABASE_NAME'),
+          port: configService.get<number>('DATABASE_PORT'),
         });
 
         // Test connection
