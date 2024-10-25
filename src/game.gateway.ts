@@ -7,7 +7,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { ChessService } from './chess/chess.service';
 import { Cron } from '@nestjs/schedule';
-import { Square } from 'chess.js';
 
 @WebSocketGateway()
 export class GameGateway {
@@ -23,6 +22,7 @@ export class GameGateway {
   handleConnection(socket: Socket) {
     console.log(`User connected: ${socket.id}`);
     const userId = socket.handshake.query.userId as string;
+    console.log(userId, 'userId');
     this.connectedUsers.push({ userId: userId, socketId: socket.id });
     console.log(`Connected users count: ${this.connectedUsers.length}`);
 
@@ -47,6 +47,7 @@ export class GameGateway {
 
   @SubscribeMessage('joinQueue')
   handleJoinQueue(@MessageBody() data: { userId: string; gameType: string; }): void {
+    console.log('START QUEUE');
     const userId = data.userId;
     const gameType = data.gameType;
 

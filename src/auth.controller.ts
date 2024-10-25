@@ -53,6 +53,7 @@ export class AuthController {
     @Res() res: FastifyReply
   ) {
     const userId = req.session.userId;
+
     if (!userId) {
       return res.status(401).send({ message: 'Unauthorized' });
     }
