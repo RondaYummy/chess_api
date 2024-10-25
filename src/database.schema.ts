@@ -6,6 +6,8 @@ export interface DatabaseSchema {
     boardState: string; // FEN
     createdAt: Date;
     updatedAt: Date;
+    winner: string | null; // Значення: 'white', 'black', або 'draw'
+    gameEndReason: string | null; // Наприклад, 'checkmate', 'stalemate', 'resignation'
     timeWhite: number; // Час для білих
     timeBlack: number; // Час для чорних
     turn: string; // Хід (white або black)

@@ -3,6 +3,7 @@ import {
   WebSocketServer,
   SubscribeMessage,
   MessageBody,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChessService } from './chess/chess.service';
@@ -46,8 +47,8 @@ export class GameGateway {
   }
 
   @SubscribeMessage('joinQueue')
-  handleJoinQueue(@MessageBody() data: { userId: string; gameType: string; }): void {
-    console.log('START QUEUE');
+  handleJoinQueue(@MessageBody() data: { userId: string; gameType: string; }, @ConnectedSocket() client: Socket): void {
+    console.log('--- JOIN QUEUE ---');
     const userId = data.userId;
     const gameType = data.gameType;
 
@@ -57,13 +58,16 @@ export class GameGateway {
       this.queue.push(data);
 
       console.log(`User ${userId} joined the queue with type ${gameType}. Current queue:`, this.queue);
-      this.server.emit('joinedQueue', data);
+      client.emit('joinedQueue', data); // Відправка тільки клієнту, який приєднався до черги
     }
   }
 
   @SubscribeMessage('subscribeToGame')
-  async handleSubscribeToGame(@MessageBody() data: { gameId: string; }): Promise<void> {
+  async handleSubscribeToGame(@MessageBody() data: { gameId: string; }, @ConnectedSocket() client: Socket): Promise<void> {
     const gameId = data.gameId;
+
+    // Додаємо клієнта до кімнати гри
+    client.join(gameId);
 
     const game = await this.chessService.getGameById(gameId);
     const moves = await this.chessService.getGameMovesByGameId(gameId);
@@ -71,7 +75,8 @@ export class GameGateway {
     if (game) {
       console.log(`User subscribed to game ${gameId}`);
       const board = this.chessService.getInitialBoard(game.boardState);
-      this.server.emit('gameDetails', { game, board, moves });
+      // Відправляємо тільки в кімнату, щоб гравці отримували дані по грі
+      this.server.to(gameId).emit('gameDetails', { game, board, moves });
     } else {
       console.log(`Game ${gameId} not found for subscription.`);
     }
@@ -79,41 +84,49 @@ export class GameGateway {
 
   @SubscribeMessage('move')
   async handleMove(@MessageBody() data: { from: string; to: string; userId: string; gameId: string; promotion?: string; }) {
-    // Перевірка, що всі дані надійшли
     if (!data?.userId || !data?.from || !data?.to || !data?.gameId) {
       console.error('Missing data!');
-      return; // Завершуємо функцію, якщо якісь дані відсутні
+      return;
     }
 
     console.log(`User ${data.userId} moved from ${data.from} to ${data.to}`);
     const moveResult = await this.chessService.handleMove(data);
 
-    // Відправка оновлень всім клієнтам
-    this.server.emit('move', moveResult);
+    // Відправка оновлень тільки клієнтам у кімнаті гри
+    this.server.to(data.gameId).emit('move', moveResult);
   }
 
   private async startGame(players: { userId: string; gameType: string; }[]) {
-    const playerWhite = players[0].userId; // Перший гравець — білий
-    const playerBlack = players[1].userId; // Другий гравець — чорний
+    const playerWhite = players[0].userId;
+    const playerBlack = players[1].userId;
 
-    const gameId = await this.chessService.createGame(playerWhite, playerBlack); // Зберігаємо гру
+    const gameId = await this.chessService.createGame(playerWhite, playerBlack);
 
     const initialBoard = this.chessService.getInitialBoard();
-    this.server.emit('gameStarted', { players, board: initialBoard, id: gameId });
+
+    // Додаємо обох гравців до кімнати
+    players.forEach(player => {
+      const userSocket = this.connectedUsers.find(user => user.userId === player.userId);
+      if (userSocket) {
+        this.server.sockets.sockets.get(userSocket.socketId)?.join(gameId);
+      }
+    });
+
+    // Відправляємо подію тільки гравцям у кімнаті гри
+    this.server.to(gameId).emit('gameStarted', { players, board: initialBoard, id: gameId });
     console.log(`Game ${gameId} started between:`, players);
   }
 
   @Cron('*/10 * * * * *')
   handleGameCheck() {
     if (this.queue.length >= 2) {
-      // Витягнути перших двох гравців з черги в майбутньому зробити підбір гравців ( ранг, тощо )
       const players = this.queue.splice(0, 2);
       this.startGame(players);
     }
   }
 
   @SubscribeMessage('ping')
-  handlePing(client: any): void {
+  handlePing(@ConnectedSocket() client: Socket): void {
     client.emit('pong');
-  };
+  }
 }
