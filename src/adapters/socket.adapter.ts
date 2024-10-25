@@ -10,7 +10,7 @@ export class SocketAdapter extends IoAdapter {
     },
   ) {
     const corsOptions = {
-      origin: '*',
+      origin: ['http://localhost:5173', 'https://chess.levych.com', 'https://levych.com', process.env.BASE_WEB_APP_URL],
       credentials: true,
     };
 
