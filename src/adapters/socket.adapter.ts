@@ -9,7 +9,17 @@ export class SocketAdapter extends IoAdapter {
       server?: any;
     },
   ) {
-    const server = super.createIOServer(port, { ...options, cors: false });
+    const corsOptions = {
+      origin: [
+        'http://localhost:5173',
+        'https://chess.levych.com',
+        'https://levych.com',
+        process.env.BASE_WEB_APP_URL
+      ],
+      credentials: true,
+    };
+
+    const server = super.createIOServer(port, { ...options, cors: corsOptions });
     return server;
   }
 }
