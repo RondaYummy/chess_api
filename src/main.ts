@@ -38,9 +38,16 @@ async function bootstrap() {
   app.use(
     cors({
       origin: ['http://localhost:5173', 'https://chess.levych.com', 'https://levych.com', process.env.BASE_WEB_APP_URL],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       credentials: true,
     }),
   );
+  app.enableCors({
+    credentials: true,
+    origin: ['http://localhost:5173', 'https://chess.levych.com', 'https://levych.com', process.env.BASE_WEB_APP_URL],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
   // Налаштування CORS для Socket.IO
   app.useWebSocketAdapter(new SocketAdapter(app));
