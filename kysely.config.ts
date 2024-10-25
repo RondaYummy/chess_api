@@ -2,13 +2,16 @@ import { FileMigrationProvider, Kysely, Migrator, PostgresDialect } from 'kysely
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as pg from 'pg';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const pool = new pg.Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'chess_db',
-  user: 'postgres',
-  password: '121314Qq',
+  host: process.env.DATABASE_HOST,
+  port: Number(process.env.DATABASE_PORT),
+  database: process.env.DATABASE_NAME,
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
 });
 
 const db = new Kysely({
