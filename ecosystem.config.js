@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'Chess_API',
-      script: 'dist/main.js',
+      script: 'dist/src/main.js',
       exec_mode: 'cluster',
       instances: 0,
       autorestart: true,
