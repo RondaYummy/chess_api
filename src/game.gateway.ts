@@ -20,7 +20,7 @@ export class GameGateway {
 
   constructor(private chessService: ChessService) { }
 
-  handleConnection(socket: Socket) {
+  handleConnection(socket: Socket, @ConnectedSocket() client: Socket) {
     const userId = socket.handshake.query.userId as string;
     console.log(`User connected: ${socket.id} ::: ${userId}`);
 
@@ -30,6 +30,11 @@ export class GameGateway {
     const clearTimeoutUser = this.leftUsers.find(user => user.userId === userId);
     clearTimeout(clearTimeoutUser?.timeoutId);
     this.leftUsers = this.leftUsers.filter(user => user.userId !== userId);
+
+    const queue = this.queue.find((q) => q.userId === userId);
+    if (queue) {
+      socket.emit('joinedQueue', queue);
+    }
   }
 
   handleDisconnect(socket: Socket) {
@@ -39,6 +44,7 @@ export class GameGateway {
     if (user) {
       user.timeoutId = setTimeout(() => {
         console.log(`User ${user.userId} has timed out and lost the game.`);
+        this.queue = this.queue.filter((q) => q.userId !== user.userId); // пошук гри
       }, 13000); // 13 секунд
       this.leftUsers.push(user);
     }
