@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
 import { DatabaseSchema } from 'src/database.schema';
-import { generateUniqueId, isValidFEN } from 'src/utils/ids';
+import { generateUniqueId } from 'src/utils/ids';
 import { Chess } from 'chess.js';
 
 @Injectable()
@@ -13,11 +13,16 @@ export class ChessService {
       const gameId = generateUniqueId();
       const chess = new Chess();
       const initialFen = chess.fen();
+      const initialTime = 300000;
 
       const data = {
         id: gameId,
         playerWhite,
         playerBlack,
+        timeWhite: initialTime,
+        timeBlack: initialTime,
+        startTime: new Date(),
+        turn: 'white',
         moves: [],
         boardState: initialFen,
         createdAt: new Date(),
@@ -120,15 +125,19 @@ export class ChessService {
     }
   }
 
-  async handleMove(data: { from?: string; to?: string; userId?: string; gameId?: string; promotion?: string; }) {
-    const game = await this.getGameById(data.gameId);
-    if (!game) {
-      throw new Error('Game not found'); // Краще кинути помилку?
-    }
-    if (!isValidFEN(game.boardState)) {
-      throw new Error('Bad FEN'); // Краще кинути помилку?
-    }
+  async savePlayerTime(gameId: string, updatedTimeField: "timeWhite" | "timeBlack", remainingTime: number, currentPlayer: string, now: Date) {
+    await this.db
+      .updateTable('chess_games')
+      .set({
+        [updatedTimeField]: remainingTime,
+        turn: currentPlayer === 'white' ? 'black' : 'white',
+        startTime: now,
+      })
+      .where('id', '=', gameId)
+      .execute();
+  }
 
+  async handleMove(data: { from?: string; to?: string; userId?: string; gameId?: string; promotion?: string; }, game) {
     const chess = new Chess(game.boardState);
 
     let moveResult;

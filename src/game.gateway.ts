@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { ChessService } from './chess/chess.service';
 import { Cron } from '@nestjs/schedule';
+import { isValidFEN } from './utils/ids';
 
 @WebSocketGateway()
 export class GameGateway {
@@ -112,11 +113,38 @@ export class GameGateway {
       return;
     }
 
+    const game = await this.chessService.getGameById(data.gameId);
+    if (!game) {
+      throw new Error('Game not found'); // Краще кинути помилку?
+    }
+    if (!isValidFEN(game.boardState)) {
+      throw new Error('Bad FEN'); // Краще кинути помилку?
+    }
+
+    const currentPlayer = game.turn;
+    const now = new Date();
+    const elapsed = now.getTime() - new Date(game.startTime).getTime();
+    console.log(elapsed, 'elapsed');
+
+    // Перевірка часу ходу
+    if (elapsed > game.moveTimeLimit) {
+      const winner = currentPlayer === 'white' ? 'black' : 'white';
+      // await this.endGameWithTimeout(data.gameId, winner); // TODO
+      return;
+    }
+
+    // Оновлення залишкового часу для гравця
+    const updatedTimeField = currentPlayer === 'white' ? 'timeWhite' : 'timeBlack';
+    const remainingTime = game[updatedTimeField] - elapsed;
+
     console.log(`User ${data.userId} moved from ${data.from} to ${data.to}`);
-    const moveResult = await this.chessService.handleMove(data);
+
+    const moveResult = await this.chessService.handleMove(data, game);
+
+    await this.chessService.savePlayerTime(game.id, updatedTimeField, remainingTime, currentPlayer, now);
 
     // Відправка оновлень тільки клієнтам у кімнаті гри
-    this.server.to(data.gameId).emit('move', moveResult);
+    this.server.to(data.gameId).emit('move', { ...moveResult, remainingTime, currentPlayer });
   }
 
   private async startGame(players: { userId: string; gameType: string; }[]) {

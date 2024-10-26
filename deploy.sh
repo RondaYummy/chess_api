@@ -1,4 +1,5 @@
 #!/bin/bash
+
 function deploy() {
   echo "====> Починаємо оновлення проекту"
 
