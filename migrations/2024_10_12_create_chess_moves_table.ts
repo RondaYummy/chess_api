@@ -14,6 +14,6 @@ export async function up(db: Kysely<DatabaseSchema>) {
 
 export async function down(db: Kysely<DatabaseSchema>) {
   await db.schema
-    .dropTable('chess_moves') // Вилучаємо таблицю у разі скасування
+    .dropTable('chess_moves')
     .execute();
 }

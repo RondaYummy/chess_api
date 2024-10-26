@@ -37,19 +37,36 @@ export class GameGateway {
     }
   }
 
-  handleDisconnect(socket: Socket) {
+  async handleDisconnect(socket: Socket) {
     console.log(`User disconnected: ${socket.id}`);
     const user = this.connectedUsers.find(user => user.socketId === socket.id);
+    const game = await this.chessService.getActivePlayerGame(user.userId);
 
-    if (user) {
-      user.timeoutId = setTimeout(() => {
-        console.log(`User ${user.userId} has timed out and lost the game.`);
-        this.queue = this.queue.filter((q) => q.userId !== user.userId); // пошук гри
+    if (user && game) {
+      user.timeoutId = setTimeout(async () => {
+        const updatedGame = await this.chessService.leftFromGame(game, user.userId);
+
+        if (updatedGame && updatedGame?.id) {
+          const moves = await this.chessService.getGameMovesByGameId(game.id);
+          const board = this.chessService.getInitialBoard(game.boardState);
+          this.server.to(game.id).emit('gameDetails', { game: updatedGame, board, moves });
+        }
       }, 13000); // 13 секунд
+
       this.leftUsers.push(user);
     }
 
+    this.queue = this.queue.filter((q) => q.userId !== user.userId);
     this.connectedUsers = this.connectedUsers.filter(user => user.socketId !== socket.id);
+  }
+
+  @SubscribeMessage('leaveQueue')
+  handleLeaveQueue(@MessageBody() data: { userId: string; gameType: string; }, @ConnectedSocket() client: Socket): void {
+    const userId = data.userId;
+    const gameType = data.gameType;
+
+    this.queue = this.queue.filter((q) => q.userId !== userId && q.gameType !== gameType);
+    client.emit('leftTheQueue', data); // Відправка тільки клієнту, який вийшов з черги
   }
 
   @SubscribeMessage('joinQueue')
@@ -123,7 +140,7 @@ export class GameGateway {
     console.log(`Game ${gameId} started between:`, players);
   }
 
-  @Cron('*/10 * * * * *')
+  @Cron('*/5 * * * * *')
   handleGameCheck() {
     if (this.queue.length >= 2) {
       const players = this.queue.splice(0, 2);

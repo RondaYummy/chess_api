@@ -20,6 +20,6 @@ export async function up(db: Kysely<DatabaseSchema>) {
 
 export async function down(db: Kysely<DatabaseSchema>) {
   await db.schema
-    .dropTable('users') // Вилучаємо таблицю у разі скасування
+    .dropTable('users')
     .execute();
 }

@@ -11,7 +11,7 @@ export const up = async (db: Kysely<any>) => {
 export const down = async (db: Kysely<any>) => {
   await db.schema
     .alterTable('chess_games')
-    .dropColumn('winner') // Видаляємо поле переможця
-    .dropColumn('gameEndReason') // Видаляємо поле причини завершення гри
+    .dropColumn('winner')
+    .dropColumn('gameEndReason')
     .execute();
 };

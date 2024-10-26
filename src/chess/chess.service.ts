@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
 import { DatabaseSchema } from 'src/database.schema';
 import { generateUniqueId, isValidFEN } from 'src/utils/ids';
-import { Chess, Square } from 'chess.js';
+import { Chess } from 'chess.js';
 
 @Injectable()
 export class ChessService {
@@ -46,6 +46,23 @@ export class ChessService {
     return game; // Повертає гру або null, якщо не знайдено
   }
 
+  async getGameByPlayerId(userId: string) {
+    const game = await this.db
+      .selectFrom('chess_games')
+      .selectAll()
+      .where((eb) =>
+        eb.or([
+          eb('playerWhite', '=', userId),
+          eb('playerBlack', '=', userId)
+        ])
+      )
+      .where('winner', 'is', null) // Умова, що гра не завершена
+      .where('gameEndReason', 'is', null) // Умова, що гра не завершена
+      .executeTakeFirst();
+
+    return game; // Повертає гру або null, якщо не знайдено
+  }
+
   async getGameMovesByGameId(gameId: string) {
     const moves = await this.db
       .selectFrom('chess_moves')
@@ -60,6 +77,47 @@ export class ChessService {
     // Отримуємо стан дошки з chess.js
     const chess = new Chess(fen);
     return chess.board();
+  }
+
+  async getActivePlayerGame(playerId: string) {
+    return this.getGameByPlayerId(playerId);
+  }
+
+  async leftFromGame(game: { id: string; playerWhite: string; playerBlack: string; }, userId: string) {
+    try {
+      const isWhitePlayer = game.playerWhite === userId;
+      const isBlackPlayer = game.playerBlack === userId;
+
+      if (!isWhitePlayer && !isBlackPlayer) {
+        console.log(`User ${userId} не є учасником цієї гри (${game.id}).`);
+        return;
+      }
+
+      const winner = isWhitePlayer ? 'black' : 'white'; // Якщо вийшов білий, переможець - чорний, і навпаки
+      const gameEndReason = 'resignation';
+
+      await this.db
+        .updateTable('chess_games')
+        .set({
+          winner: winner,
+          gameEndReason: gameEndReason,
+          updatedAt: new Date(),
+        })
+        .where('id', '=', game.id)
+        .execute();
+
+      console.log(`Гравець ${userId} покинув гру. Переможець: ${winner}, причина завершення: ${gameEndReason}`);
+      const updatedGame = await this.db
+        .selectFrom('chess_games')
+        .selectAll()
+        .where('id', '=', game.id)
+        .executeTakeFirst();
+
+      return updatedGame;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
 
   async handleMove(data: { from?: string; to?: string; userId?: string; gameId?: string; promotion?: string; }) {
