@@ -10,7 +10,6 @@ export interface DatabaseSchema {
     gameEndReason: string | null; // Наприклад, 'checkmate', 'stalemate', 'resignation'
     timeWhite: number; // Час для білих
     timeBlack: number; // Час для чорних
-    moveTimeLimit: number; // Максимальний час для одного ходу в мілісекундах
     turn: string; // Хід (white або black)
     startTime: Date; // Час початку поточного ходу
   };

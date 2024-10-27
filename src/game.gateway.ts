@@ -100,7 +100,22 @@ export class GameGateway {
       console.log(`User subscribed to game ${gameId}`);
       const board = this.chessService.getInitialBoard(game.boardState);
       // Відправляємо тільки в кімнату, щоб гравці отримували дані по грі
-      this.server.to(gameId).emit('gameDetails', { game, board, moves });
+      const currentPlayer = game.turn;
+      const now = new Date();
+      const elapsed = now.getTime() - new Date(game.startTime).getTime();
+
+      let remainingWhiteTime;
+      let remainingBlackTime;
+
+      if (currentPlayer === 'white') {
+        remainingWhiteTime = game['timeWhite'] - elapsed;
+        remainingBlackTime = game['timeBlack'];
+      } else {
+        remainingWhiteTime = game['timeWhite'];
+        remainingBlackTime = game['timeBlack'] - elapsed;
+      }
+
+      this.server.to(gameId).emit('gameDetails', { game, board, moves, remainingWhiteTime, remainingBlackTime, currentPlayer });
     } else {
       console.log(`Game ${gameId} not found for subscription.`);
     }
@@ -124,18 +139,19 @@ export class GameGateway {
     const currentPlayer = game.turn;
     const now = new Date();
     const elapsed = now.getTime() - new Date(game.startTime).getTime();
+    const updatedTimeField = currentPlayer === 'white' ? 'timeWhite' : 'timeBlack';
+    const remainingTime = game[updatedTimeField] - elapsed;
     console.log(elapsed, 'elapsed');
 
     // Перевірка часу ходу
-    if (elapsed > game.moveTimeLimit) {
+    if (remainingTime <= 0) {
       const winner = currentPlayer === 'white' ? 'black' : 'white';
+      console.log(winner, 'winner');
       // await this.endGameWithTimeout(data.gameId, winner); // TODO
       return;
     }
 
     // Оновлення залишкового часу для гравця
-    const updatedTimeField = currentPlayer === 'white' ? 'timeWhite' : 'timeBlack';
-    const remainingTime = game[updatedTimeField] - elapsed;
 
     console.log(`User ${data.userId} moved from ${data.from} to ${data.to}`);
 
