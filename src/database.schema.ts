@@ -8,8 +8,8 @@ export interface DatabaseSchema {
     updatedAt: Date;
     winner: string | null; // Значення: 'white', 'black', або 'draw'
     gameEndReason: string | null; // Наприклад, 'checkmate', 'stalemate', 'resignation'
-    timeWhite: number; // Час для білих
-    timeBlack: number; // Час для чорних
+    timeWhite: number; // Час для білих ( ms )
+    timeBlack: number; // Час для чорних ( ms )
     turn: string; // Хід (white або black)
     startTime: Date; // Час початку поточного ходу
   };

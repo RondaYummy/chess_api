@@ -13,7 +13,7 @@ export class ChessService {
       const gameId = generateUniqueId();
       const chess = new Chess();
       const initialFen = chess.fen();
-      const initialTime = 300000;
+      const initialTime = 300000; // 10 min
 
       const data = {
         id: gameId,
