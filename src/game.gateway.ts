@@ -17,7 +17,7 @@ export class GameGateway {
 
   private connectedUsers: { userId: string; socketId: string; timeoutId?: NodeJS.Timeout; }[] = [];
   private leftUsers: { userId: string; socketId: string; timeoutId?: NodeJS.Timeout; }[] = [];
-  private queue: { userId: string; gameType: string; }[] = [];
+  private queue: { userId: string; gameType: string; time: number; }[] = [];
 
   constructor(private chessService: ChessService) { }
 
@@ -52,7 +52,7 @@ export class GameGateway {
           const board = this.chessService.getInitialBoard(game.boardState);
           this.server.to(game.id).emit('gameDetails', { game: updatedGame, board, moves });
         }
-      }, 13000); // 13 секунд
+      }, 13000); // 13 seconds
 
       this.leftUsers.push(user);
     }
@@ -67,11 +67,11 @@ export class GameGateway {
     const gameType = data.gameType;
 
     this.queue = this.queue.filter((q) => q.userId !== userId && q.gameType !== gameType);
-    client.emit('leftTheQueue', data); // Відправка тільки клієнту, який вийшов з черги
+    client.emit('leftTheQueue', data); // Sending only to a client who has left the queue
   }
 
   @SubscribeMessage('joinQueue')
-  handleJoinQueue(@MessageBody() data: { userId: string; gameType: string; }, @ConnectedSocket() client: Socket): void {
+  handleJoinQueue(@MessageBody() data: { userId: string; gameType: string; time: number; }, @ConnectedSocket() client: Socket): void {
     console.log('--- JOIN QUEUE ---');
     const userId = data.userId;
     const gameType = data.gameType;
@@ -82,7 +82,7 @@ export class GameGateway {
       this.queue.push(data);
 
       console.log(`User ${userId} joined the queue with type ${gameType}. Current queue:`, this.queue);
-      client.emit('joinedQueue', data); // Відправка тільки клієнту, який приєднався до черги
+      client.emit('joinedQueue', data); // Send only to the client that joined the queue
     }
   }
 
@@ -90,7 +90,7 @@ export class GameGateway {
   async handleSubscribeToGame(@MessageBody() data: { gameId: string; }, @ConnectedSocket() client: Socket): Promise<void> {
     const gameId = data.gameId;
 
-    // Додаємо клієнта до кімнати гри
+    // Add a client to the game room
     client.join(gameId);
 
     const game = await this.chessService.getGameById(gameId);
@@ -99,7 +99,7 @@ export class GameGateway {
     if (game) {
       console.log(`User subscribed to game ${gameId}`);
       const board = this.chessService.getInitialBoard(game.boardState);
-      // Відправляємо тільки в кімнату, щоб гравці отримували дані по грі
+      // Send only to the room so that players receive game data
       const currentPlayer = game.turn;
       const now = new Date();
       const elapsed = now.getTime() - new Date(game.startTime).getTime();
@@ -130,10 +130,10 @@ export class GameGateway {
 
     const game = await this.chessService.getGameById(data.gameId);
     if (!game) {
-      throw new Error('Game not found'); // Краще кинути помилку?
+      throw new Error('Game not found'); // Is it better to throw a bug?
     }
     if (!isValidFEN(game.boardState)) {
-      throw new Error('Bad FEN'); // Краще кинути помилку?
+      throw new Error('Bad FEN'); // Is it better to throw a bug?
     }
 
     const currentPlayer = game.turn;
@@ -141,17 +141,14 @@ export class GameGateway {
     const elapsed = now.getTime() - new Date(game.startTime).getTime();
     const updatedTimeField = currentPlayer === 'white' ? 'timeWhite' : 'timeBlack';
     const remainingTime = game[updatedTimeField] - elapsed;
-    console.log(elapsed, 'elapsed');
 
-    // Перевірка часу ходу
+    // Checking the stroke time
     if (remainingTime <= 0) {
       const winner = currentPlayer === 'white' ? 'black' : 'white';
       console.log(winner, 'winner');
-      // await this.endGameWithTimeout(data.gameId, winner); // TODO
+      // await this.endGameWithTimeout(data.gameId, winner); // TODO handle end game
       return;
     }
-
-    // Оновлення залишкового часу для гравця
 
     console.log(`User ${data.userId} moved from ${data.from} to ${data.to}`);
 
@@ -159,19 +156,21 @@ export class GameGateway {
 
     await this.chessService.savePlayerTime(game.id, updatedTimeField, remainingTime, currentPlayer, now);
 
-    // Відправка оновлень тільки клієнтам у кімнаті гри
+    // Send updates only to clients in the game room
     this.server.to(data.gameId).emit('move', { ...moveResult, remainingTime, currentPlayer });
   }
 
-  private async startGame(players: { userId: string; gameType: string; }[]) {
+  private async startGame(players: { userId: string; gameType: string; time: number; }[]) {
     const playerWhite = players[0].userId;
     const playerBlack = players[1].userId;
+    const time = players[0].time || players[1].time;
+    const gameType = players[0].gameType || players[1].gameType;
 
-    const gameId = await this.chessService.createGame(playerWhite, playerBlack);
+    const gameId = await this.chessService.createGame(playerWhite, playerBlack, time, gameType);
 
     const initialBoard = this.chessService.getInitialBoard();
 
-    // Додаємо обох гравців до кімнати
+    // Add both players to the room
     players.forEach(player => {
       const userSocket = this.connectedUsers.find(user => user.userId === player.userId);
       if (userSocket) {
@@ -179,17 +178,35 @@ export class GameGateway {
       }
     });
 
-    // Відправляємо подію тільки гравцям у кімнаті гри
+    // Send the event only to players in the game room
     this.server.to(gameId).emit('gameStarted', { players, board: initialBoard, id: gameId });
     console.log(`Game ${gameId} started between:`, players);
   }
 
   @Cron('*/5 * * * * *')
   handleGameCheck() {
-    if (this.queue.length >= 2) {
-      const players = this.queue.splice(0, 2);
-      this.startGame(players);
+    // Group players by game type and time
+    const groupedPlayers: { [key: string]: { userId: string; gameType: string; time: number; }[]; } = {};
+    this.queue.forEach((player) => {
+      const key = `${player.gameType}-${player.time}`; // Create a unique key for the game type and time
+      if (!groupedPlayers[key]) {
+        groupedPlayers[key] = [];
+      }
+      groupedPlayers[key].push(player);
+    });
+
+    for (const key in groupedPlayers) {
+      if (groupedPlayers[key].length >= 2) {
+        const players = groupedPlayers[key].splice(0, 2); // Take two players from the group
+        this.startGame(players); // Start the game
+      }
     }
+
+    // Update the queue by removing players who are already playing
+    this.queue = this.queue.filter((player) => {
+      const key = `${player.gameType}-${player.time}`;
+      return !(groupedPlayers[key] && groupedPlayers[key].length === 0);
+    });
   }
 
   @SubscribeMessage('ping')

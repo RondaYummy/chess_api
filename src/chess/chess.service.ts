@@ -8,12 +8,12 @@ import { Chess } from 'chess.js';
 export class ChessService {
   constructor(@Inject('DB_CONNECTION') private db: Kysely<DatabaseSchema>) { }
 
-  async createGame(playerWhite: string, playerBlack: string): Promise<string> {
+  async createGame(playerWhite: string, playerBlack: string, time: number, gameType: string): Promise<string> {
     try {
       const gameId = generateUniqueId();
       const chess = new Chess();
       const initialFen = chess.fen();
-      const initialTime = 300000; // 10 min
+      const initialTime = time || 300000; // 10 min
 
       const data = {
         id: gameId,
@@ -22,8 +22,8 @@ export class ChessService {
         timeWhite: initialTime,
         timeBlack: initialTime,
         startTime: new Date(),
+        type: gameType,
         turn: 'white',
-        moves: [],
         boardState: initialFen,
         createdAt: new Date(),
         updatedAt: new Date(),

@@ -4,6 +4,7 @@ export interface DatabaseSchema {
     playerWhite: string;
     playerBlack: string;
     boardState: string; // FEN
+    type: string;
     createdAt: Date;
     updatedAt: Date;
     winner: string | null; // Значення: 'white', 'black', або 'draw'
