@@ -145,8 +145,8 @@ export class GameGateway {
     // Checking the stroke time
     if (remainingTime <= 0) {
       const winner = currentPlayer === 'white' ? 'black' : 'white';
-      console.log(winner, 'winner');
-      // await this.endGameWithTimeout(data.gameId, winner); // TODO handle end game
+      await this.chessService.timeLeftGame(game, winner);
+      // TODO handle end game
       return;
     }
 

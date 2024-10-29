@@ -88,6 +88,25 @@ export class ChessService {
     return this.getGameByPlayerId(playerId);
   }
 
+  async timeLeftGame(game: { id: string; playerWhite: string; playerBlack: string; }, winner: string) {
+    try {
+      const gameEndReason = 'time-out';
+      await this.db
+        .updateTable('chess_games')
+        .set({
+          winner: winner,
+          gameEndReason: gameEndReason,
+          updatedAt: new Date(),
+        })
+        .where('id', '=', game.id)
+        .execute();
+      console.log(`Час вийшов. Переможець: ${winner}, причина завершення: ${gameEndReason}`);
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  }
+
   async leftFromGame(game: { id: string; playerWhite: string; playerBlack: string; }, userId: string) {
     try {
       const isWhitePlayer = game.playerWhite === userId;
