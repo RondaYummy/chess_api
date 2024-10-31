@@ -8,7 +8,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { SocketAdapter } from './adapters/socket.adapter';
-import kysely from './kysely.config';
+import kysely from '../kysely.config';
 import { ValidationPipe } from '@nestjs/common';
 const RedisStore = require('connect-redis').default;
 import Redis from 'ioredis';
