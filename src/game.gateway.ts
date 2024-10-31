@@ -195,7 +195,7 @@ export class GameGateway {
     console.log(`Game ${gameId} started between:`, players);
   }
 
-  private async handleBotMove(game: {
+  private async handleBotMove(data: {
     id: string;
     playerWhite: string;
     playerBlack: string;
@@ -211,6 +211,7 @@ export class GameGateway {
     startTime: Date;
     isBotGame: boolean;
   }) {
+    const game = await this.chessService.getGameById(data.id);
     if (!game) return;
     const bestMove = await this.stockfishService.getBestMove(game.boardState);
     if (!bestMove || !bestMove.from || !bestMove.to) {
@@ -231,7 +232,7 @@ export class GameGateway {
     // Оновлення часу для бота
     await this.chessService.savePlayerTime(game.id, 'timeBlack', remainingTime, 'black', now);
 
-    this.server.to(game.id).emit('move', { ...moveResult, remainingTime, currentPlayer: 'white' });
+    this.server.to(game.id).emit('move', { ...moveResult, remainingTime, currentPlayer: 'black' });
   }
 
 
