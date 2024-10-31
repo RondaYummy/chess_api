@@ -231,7 +231,7 @@ export class GameGateway {
     // Оновлення часу для бота
     await this.chessService.savePlayerTime(game.id, 'timeBlack', remainingTime, 'black', now);
 
-    this.server.to(game.id).emit('move', { ...moveResult, remainingTime, currentPlayer: game.turn });
+    this.server.to(game.id).emit('move', { ...moveResult, remainingTime, currentPlayer: 'black' });
   }
 
 
