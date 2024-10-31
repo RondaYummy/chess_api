@@ -10,11 +10,12 @@ import { LoggingService } from './logging.service';
 import { AuthController } from './auth.controller';
 import { ConfigModule } from '@nestjs/config';
 import { TelegramModule } from './telegram/telegram.module';
+import { StockfishModule } from './stockfish/stockfish.module';
 
 @Module({
   imports: [ChessModule, DatabaseModule, ScheduleModule.forRoot(), ConfigModule.forRoot({
     isGlobal: true,
-  }), TelegramModule,],
+  }), TelegramModule, StockfishModule],
   controllers: [AppController, AuthController],
   providers: [AppService, GameGateway, ChessService, LoggingService],
 })

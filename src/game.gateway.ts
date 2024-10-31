@@ -9,6 +9,7 @@ import { Server, Socket } from 'socket.io';
 import { ChessService } from './chess/chess.service';
 import { Cron } from '@nestjs/schedule';
 import { isValidFEN } from './utils/ids';
+import { StockfishService } from './stockfish/stockfish.service';
 
 @WebSocketGateway()
 export class GameGateway {
@@ -19,7 +20,7 @@ export class GameGateway {
   private leftUsers: { userId: string; socketId: string; timeoutId?: NodeJS.Timeout; }[] = [];
   private queue: { userId: string; gameType: string; time: number; }[] = [];
 
-  constructor(private chessService: ChessService) { }
+  constructor(private chessService: ChessService, private stockfishService: StockfishService) { }
 
   handleConnection(socket: Socket, @ConnectedSocket() client: Socket) {
     const userId = socket.handshake.query.userId as string;
@@ -71,10 +72,18 @@ export class GameGateway {
   }
 
   @SubscribeMessage('joinQueue')
-  handleJoinQueue(@MessageBody() data: { userId: string; gameType: string; time: number; }, @ConnectedSocket() client: Socket): void {
+  handleJoinQueue(@MessageBody() data: { userId: string; gameType: string; time: number; withBot: boolean; }, @ConnectedSocket() client: Socket) {
     console.log('--- JOIN QUEUE ---');
     const userId = data.userId;
     const gameType = data.gameType;
+
+    if (data.withBot) {
+      return this.startGame([{
+        userId,
+        gameType,
+        time: data.time,
+      }], true);
+    }
 
     const foundUser = this.queue.find((q) => q.gameType === gameType && q.userId === userId);
 
@@ -84,7 +93,7 @@ export class GameGateway {
       console.log(`User ${userId} joined the queue with type ${gameType}. Current queue:`, this.queue);
       client.emit('joinedQueue', data); // Send only to the client that joined the queue
     }
-  }
+  };
 
   @SubscribeMessage('subscribeToGame')
   async handleSubscribeToGame(@MessageBody() data: { gameId: string; }, @ConnectedSocket() client: Socket): Promise<void> {
@@ -119,7 +128,7 @@ export class GameGateway {
     } else {
       console.log(`Game ${gameId} not found for subscription.`);
     }
-  }
+  };
 
   @SubscribeMessage('move')
   async handleMove(@MessageBody() data: { from: string; to: string; userId: string; gameId: string; promotion?: string; }) {
@@ -156,13 +165,15 @@ export class GameGateway {
 
     await this.chessService.savePlayerTime(game.id, updatedTimeField, remainingTime, currentPlayer, now);
 
-    // Send updates only to clients in the game room
     this.server.to(data.gameId).emit('move', { ...moveResult, remainingTime, currentPlayer });
+
+    // TODO if bot
+    await this.handleBotMove(game.id);
   }
 
-  private async startGame(players: { userId: string; gameType: string; time: number; }[]) {
+  private async startGame(players: { userId: string; gameType: string; time: number; }[], playWithBot: boolean = false) {
     const playerWhite = players[0].userId;
-    const playerBlack = players[1].userId;
+    const playerBlack = playWithBot ? 'bot' : players[1].userId;
     const time = players[0].time || players[1].time;
     const gameType = players[0].gameType || players[1].gameType;
 
@@ -172,7 +183,7 @@ export class GameGateway {
 
     // Add both players to the room
     players.forEach(player => {
-      const userSocket = this.connectedUsers.find(user => user.userId === player.userId);
+      const userSocket = this.connectedUsers.find(user => user?.userId === player?.userId);
       if (userSocket) {
         this.server.sockets.sockets.get(userSocket.socketId)?.join(gameId);
       }
@@ -182,6 +193,35 @@ export class GameGateway {
     this.server.to(gameId).emit('gameStarted', { players, board: initialBoard, id: gameId });
     console.log(`Game ${gameId} started between:`, players);
   }
+
+  private async handleBotMove(gameId: string) {
+    const game = await this.chessService.getGameById(gameId);
+
+    if (!game) return;
+    const bestMove = await this.stockfishService.getBestMove(game.boardState);
+    if (!bestMove || !bestMove.from || !bestMove.to) {
+      console.log('Failed to get a valid move from Stockfish');
+      return;
+    }
+    console.log(`Bot move from ${bestMove.from} to ${bestMove.to}`);
+
+    // Застосовуємо хід бота до гри і оновлюємо її стан
+    const moveResult = await this.chessService.handleMove({ ...bestMove, gameId: game.id, userId: game.id }, game);
+    if (!moveResult) {
+      console.log('Failed to apply bot move');
+      return;
+    }
+    // Оновлюємо час і статус гри
+    const now = new Date();
+    const remainingTime = game.turn === 'black' ? game.timeBlack : game.timeWhite;
+
+    // Оновлення часу для бота
+    await this.chessService.savePlayerTime(game.id, 'timeBlack', remainingTime, 'black', now);
+
+    // Надсилаємо хід бота в кімнату гри
+    this.server.to(gameId).emit('move', { ...moveResult, remainingTime, currentPlayer: game.turn });
+  }
+
 
   @Cron('*/5 * * * * *')
   handleGameCheck() {
