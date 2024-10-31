@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
-import { DatabaseSchema } from 'src/database.schema';
+import { DatabaseSchema } from '../database.schema';
 import { generateUniqueId } from '../utils/ids';
 import { Chess } from 'chess.js';
 

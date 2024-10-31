@@ -1,5 +1,5 @@
 import { Kysely, sql } from 'kysely';
-import { DatabaseSchema } from 'src/database.schema';
+import { DatabaseSchema } from '../database.schema';
 
 export async function up(db: Kysely<DatabaseSchema>) {
   await db.schema
