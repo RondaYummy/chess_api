@@ -167,8 +167,9 @@ export class GameGateway {
 
     this.server.to(data.gameId).emit('move', { ...moveResult, remainingTime, currentPlayer });
 
-    // TODO if bot
-    await this.handleBotMove(game.id);
+    if (game.isBotGame) {
+      await this.handleBotMove(game.id);
+    }
   }
 
   private async startGame(players: { userId: string; gameType: string; time: number; }[], playWithBot: boolean = false) {
@@ -177,7 +178,7 @@ export class GameGateway {
     const time = players[0].time || players[1].time;
     const gameType = players[0].gameType || players[1].gameType;
 
-    const gameId = await this.chessService.createGame(playerWhite, playerBlack, time, gameType);
+    const gameId = await this.chessService.createGame(playerWhite, playerBlack, time, gameType, playWithBot);
 
     const initialBoard = this.chessService.getInitialBoard();
 

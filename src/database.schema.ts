@@ -13,6 +13,7 @@ export interface DatabaseSchema {
     timeBlack: number; // Час для чорних ( ms )
     turn: string; // Хід (white або black)
     startTime: Date; // Час початку поточного ходу
+    isBotGame: boolean;
   };
 
   chess_moves: {
@@ -32,8 +33,8 @@ export interface DatabaseSchema {
     firstName: string | null;
     lastName: string | null;
     languageCode: string | null; // Код мови
-    profilePicture: string | null; // URL профільного зображення
-    createdAt: Date; // Дата створення користувача
-    updatedAt: Date; // Дата останнього оновлення
+    profilePicture: string | null;
+    createdAt: Date;
+    updatedAt: Date;
   };
 }
