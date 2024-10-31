@@ -168,7 +168,7 @@ export class GameGateway {
     this.server.to(data.gameId).emit('move', { ...moveResult, remainingTime, currentPlayer });
 
     if (game.isBotGame) {
-      await this.handleBotMove(game.id);
+      await this.handleBotMove(game);
     }
   }
 
@@ -195,9 +195,22 @@ export class GameGateway {
     console.log(`Game ${gameId} started between:`, players);
   }
 
-  private async handleBotMove(gameId: string) {
-    const game = await this.chessService.getGameById(gameId);
-
+  private async handleBotMove(game: {
+    id: string;
+    playerWhite: string;
+    playerBlack: string;
+    boardState: string;
+    type: string;
+    createdAt: Date;
+    updatedAt: Date;
+    winner: string;
+    gameEndReason: string;
+    timeWhite: number;
+    timeBlack: number;
+    turn: string;
+    startTime: Date;
+    isBotGame: boolean;
+  }) {
     if (!game) return;
     const bestMove = await this.stockfishService.getBestMove(game.boardState);
     if (!bestMove || !bestMove.from || !bestMove.to) {
@@ -212,15 +225,13 @@ export class GameGateway {
       console.log('Failed to apply bot move');
       return;
     }
-    // Оновлюємо час і статус гри
     const now = new Date();
     const remainingTime = game.turn === 'black' ? game.timeBlack : game.timeWhite;
 
     // Оновлення часу для бота
     await this.chessService.savePlayerTime(game.id, 'timeBlack', remainingTime, 'black', now);
 
-    // Надсилаємо хід бота в кімнату гри
-    this.server.to(gameId).emit('move', { ...moveResult, remainingTime, currentPlayer: game.turn });
+    this.server.to(game.id).emit('move', { ...moveResult, remainingTime, currentPlayer: game.turn });
   }
 
 

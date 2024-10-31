@@ -46,7 +46,7 @@ export class StockfishService {
 
       const onMessage = (data: Buffer) => {
         const message = data.toString().trim();;
-        // console.log(`Received message from Stockfish: ${message}`);
+        console.log(`Received message from Stockfish: ${message}`);
 
         if (message.includes('bestmove')) {
           const parts = message.split(' ');
