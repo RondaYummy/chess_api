@@ -175,8 +175,8 @@ export class GameGateway {
   private async startGame(players: { userId: string; gameType: string; time: number; }[], playWithBot: boolean = false) {
     const playerWhite = players[0].userId;
     const playerBlack = playWithBot ? 'bot' : players[1].userId;
-    const time = players[0].time || players[1].time;
-    const gameType = players[0].gameType || players[1].gameType;
+    const time = players[0].time;
+    const gameType = players[0].gameType;
 
     const gameId = await this.chessService.createGame(playerWhite, playerBlack, time, gameType, playWithBot);
 
