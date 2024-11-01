@@ -201,6 +201,7 @@ export class ChessService {
         id: generateUniqueId(),
         gameId: data.gameId,
         move: `${data.from}-${data.to}`,
+        fen: chess.fen(),
         playerId: data.userId,
       })
       .execute();
