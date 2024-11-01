@@ -164,9 +164,9 @@ export class GameGateway {
     await this.chessService.savePlayerTime(game.id, updatedTimeField, remainingTime, currentPlayer, now);
     this.server.to(data.gameId).emit('move', { ...moveResult, remainingTime, currentPlayer });
 
-    console.log(game.turn, 'game.turn');
-    if (game.isBotGame && game.turn === 'black') {
-      await this.handleBotMove(game);
+    const updatedGame = await this.chessService.getGameById(game.id);
+    if (updatedGame.isBotGame && updatedGame.turn === 'black') {
+      await this.handleBotMove(updatedGame, moveResult.move.boardState);
     }
   }
 
@@ -193,7 +193,7 @@ export class GameGateway {
     console.log(`Game ${gameId} started between:`, players);
   }
 
-  private async handleBotMove(data: {
+  private async handleBotMove(game: {
     id: string;
     playerWhite: string;
     playerBlack: string;
@@ -208,10 +208,9 @@ export class GameGateway {
     turn: string;
     startTime: Date;
     isBotGame: boolean;
-  }) {
-    const game = await this.chessService.getGameById(data.id);
+  }, boardState: string) {
     if (!game) return;
-    const bestMove = await this.stockfishService.getBestMove(game.boardState);
+    const bestMove = await this.stockfishService.getBestMove(boardState);
     if (!bestMove || !bestMove.from || !bestMove.to) {
       console.log('Failed to get a valid move from Stockfish');
       return;
