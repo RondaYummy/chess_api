@@ -160,14 +160,12 @@ export class GameGateway {
     }
 
     console.log(`User ${data.userId} moved from ${data.from} to ${data.to}`);
-
     const moveResult = await this.chessService.handleMove(data, game);
-
     await this.chessService.savePlayerTime(game.id, updatedTimeField, remainingTime, currentPlayer, now);
-
     this.server.to(data.gameId).emit('move', { ...moveResult, remainingTime, currentPlayer });
 
-    if (game.isBotGame) {
+    console.log(game.turn, 'game.turn');
+    if (game.isBotGame && game.turn === 'black') {
       await this.handleBotMove(game);
     }
   }
