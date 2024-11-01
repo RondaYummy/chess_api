@@ -155,7 +155,7 @@ export class GameGateway {
     if (remainingTime <= 0) {
       const winner = currentPlayer === 'white' ? 'black' : 'white';
       await this.chessService.timeLeftGame(game, winner);
-      // TODO handle end game
+      this.server.to(data.gameId).emit('updates', { type: 'time-out', winner });
       return;
     }
 

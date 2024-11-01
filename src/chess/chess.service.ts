@@ -3,10 +3,11 @@ import { Kysely } from 'kysely';
 import { DatabaseSchema } from '../database.schema';
 import { generateUniqueId } from '../utils/ids';
 import { Chess } from 'chess.js';
+import { RatingService } from 'src/rating/rating.service';
 
 @Injectable()
 export class ChessService {
-  constructor(@Inject('DB_CONNECTION') private db: Kysely<DatabaseSchema>) { }
+  constructor(@Inject('DB_CONNECTION') private db: Kysely<DatabaseSchema>, private ratingService: RatingService) { }
 
   async createGame(playerWhite: string, playerBlack: string, time: number, gameType: string, playWithBot: boolean = false): Promise<string> {
     try {
@@ -80,7 +81,6 @@ export class ChessService {
   }
 
   getInitialBoard(fen?: string): any {
-    // Отримуємо стан дошки з chess.js
     const chess = new Chess(fen);
     return chess.board();
   }
@@ -118,7 +118,7 @@ export class ChessService {
         return;
       }
 
-      const winner = isWhitePlayer ? 'black' : 'white'; // Якщо вийшов білий, переможець - чорний, і навпаки
+      const winner = isWhitePlayer ? 'black' : 'white';
       const gameEndReason = 'resignation';
 
       await this.db
@@ -193,6 +193,14 @@ export class ChessService {
       isCheck = true;
     } else {
       console.log("Move successful:", moveResult);
+    }
+
+    if (gameEndReason && winner && !game.isBotGame) {
+      await this.ratingService.handleGameEnd({
+        ...game,
+        gameEndReason,
+        winner,
+      });
     }
 
     await this.db

@@ -37,5 +37,10 @@ export interface DatabaseSchema {
     profilePicture: string | null;
     createdAt: Date;
     updatedAt: Date;
+
+    // 
+    rating: number; // Glicko-рейтинг користувача
+    rd: number; // Rating Deviation для системи Glicko
+    lastGameDate: Date; // Дата останньої гри
   };
 }
