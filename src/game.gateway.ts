@@ -164,9 +164,11 @@ export class GameGateway {
     await this.chessService.savePlayerTime(game.id, updatedTimeField, remainingTime, currentPlayer, now);
     this.server.to(data.gameId).emit('move', { ...moveResult, remainingTime, currentPlayer });
 
-    const updatedGame = await this.chessService.getGameById(game.id);
-    if (updatedGame.isBotGame && updatedGame.turn === 'black') {
-      await this.handleBotMove(updatedGame, moveResult.move.boardState);
+    if (game.isBotGame) {
+      const updatedGame = await this.chessService.getGameById(game.id);
+      if (updatedGame.turn === 'black') {
+        await this.handleBotMove(updatedGame, moveResult.move.boardState);
+      }
     }
   }
 
