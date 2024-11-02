@@ -3,7 +3,7 @@ import { Kysely } from 'kysely';
 import { DatabaseSchema } from '../database.schema';
 import { generateUniqueId } from '../utils/ids';
 import { Chess } from 'chess.js';
-import { RatingService } from 'src/rating/rating.service';
+import { RatingService } from '../rating/rating.service';
 
 @Injectable()
 export class ChessService {

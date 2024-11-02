@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Api, Bot, Context, RawApi } from 'grammy';
 import { Kysely } from 'kysely';
 import { DatabaseSchema } from 'src/database.schema';
-import { RatingService } from 'src/rating/rating.service';
+import { RatingService } from '../rating/rating.service';
 import { generateUniqueId } from 'src/utils/ids';
 
 @Injectable()
