@@ -28,9 +28,14 @@ export class AuthGuard implements CanActivate {
         query: any;
         body: any;
         userTelegramTd: string | undefined;
+        session: any;
       }
     >();
     const initData = request.params.initData || request.query.initData || request.body.initData;
+    if (request.session?.userId) {
+      return true;
+    }
+
     const { isAuth, userTelegramTd } = this.authTelegram(initData);
     if (isAuth) {
       request.userTelegramTd = userTelegramTd;
