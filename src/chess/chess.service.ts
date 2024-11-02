@@ -108,7 +108,7 @@ export class ChessService {
     }
   }
 
-  async leftFromGame(game: { id: string; playerWhite: string; playerBlack: string; }, userId: string) {
+  async leftFromGame(game: { id: string; playerWhite: string; playerBlack: string; isBotGame: boolean; }, userId: string) {
     try {
       const isWhitePlayer = game.playerWhite === userId;
       const isBlackPlayer = game.playerBlack === userId;
@@ -132,6 +132,15 @@ export class ChessService {
         .execute();
 
       console.log(`Гравець ${userId} покинув гру. Переможець: ${winner}, причина завершення: ${gameEndReason}`);
+
+      if (gameEndReason && winner && !game.isBotGame) {
+        await this.ratingService.handleGameEnd({
+          ...game,
+          gameEndReason,
+          winner,
+        });
+      }
+
       const updatedGame = await this.db
         .selectFrom('chess_games')
         .selectAll()
