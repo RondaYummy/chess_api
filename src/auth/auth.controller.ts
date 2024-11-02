@@ -71,6 +71,16 @@ export class AuthController {
     if (!user) {
       return res.status(404).send({ message: 'User not found' });
     }
+    console.log({
+      username: user.username,
+      firstName: user.firstName,
+      id: user.id,
+      lastName: user.lastName,
+      profilePicture: user.profilePicture,
+      telegramId: user.telegramId,
+      rating: user.rating,
+      lastGameDate: user.lastGameDate,
+    });
 
     res.send({
       user: {
