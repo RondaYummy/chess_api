@@ -4,7 +4,7 @@ import { Api, Bot, Context, RawApi } from 'grammy';
 import { Kysely } from 'kysely';
 import { DatabaseSchema } from 'src/database.schema';
 import { RatingService } from '../rating/rating.service';
-import { generateUniqueId } from 'src/utils/ids';
+import { generateUniqueId } from '../utils/ids';
 
 @Injectable()
 export class TelegramService {
