@@ -246,6 +246,7 @@ export class GameGateway {
       }
       groupedPlayers[key].push(player);
     });
+    console.log('groupedPlayers: ', groupedPlayers);
 
     for (const key in groupedPlayers) {
       if (groupedPlayers[key].length >= 2) {
