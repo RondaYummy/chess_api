@@ -27,7 +27,7 @@ export class RatingService {
     opponentRD: number,
     result: number // 1 - перемога, 0 - поразка, 0.5 - нічия
   ) {
-    // Конвертуємо RD у scale Glicko
+    // Конвертую RD у scale Glicko
     const gOpponent = 1 / Math.sqrt(1 + (3 * RatingService.Q ** 2 * opponentRD ** 2) / Math.PI ** 2);
     const E = 1 / (1 + Math.exp(-gOpponent * (playerRating - opponentRating) / 400));
     const d2 = 1 / (RatingService.Q ** 2 * gOpponent ** 2 * E * (1 - E));
@@ -50,7 +50,6 @@ export class RatingService {
     const opponentRD = opponent?.rd || RatingService.INITIAL_RD;
 
     const { newRating, newRD } = this.calculateNewRating(playerRating, playerRD, opponentRating, opponentRD, result);
-    console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
     await this.db
       .updateTable('users')
@@ -61,6 +60,7 @@ export class RatingService {
       })
       .where('id', '=', playerId)
       .execute();
+    console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
     return { newRating, newRD };
   }
