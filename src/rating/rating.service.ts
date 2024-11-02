@@ -60,14 +60,20 @@ export class RatingService {
         rd: newRD,
         lastGameDate: new Date(),
       })
-      .where('id', '=', playerId)
+      .where((eb) => eb.or([
+        eb('id', '=', playerId),
+        eb('telegramId', '=', +playerId)
+      ]))
       .execute();
     console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
     const updatedPlayer = await this.db
       .selectFrom('users')
       .selectAll()
-      .where('id', '=', playerId)
+      .where((eb) => eb.or([
+        eb('id', '=', playerId),
+        eb('telegramId', '=', +playerId)
+      ]))
       .executeTakeFirst();
     console.log(`Після оновлення: ${JSON.stringify(updatedPlayer)}`);
 
