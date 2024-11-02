@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { Kysely } from 'kysely';
-import { DatabaseSchema } from 'src/database.schema';
+import { DatabaseSchema } from '../database.schema';
 
 @Injectable()
 export class RatingService {
