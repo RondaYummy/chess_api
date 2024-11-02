@@ -37,7 +37,7 @@ async function bootstrap() {
 
   app.use(
     cors({
-      origin: ['http://localhost:5173', 'https://chess.levych.com', 'https://levych.com', process.env.BASE_WEB_APP_URL],
+      origin: ['http://localhost:5173', 'https://levych.com', process.env.BASE_WEB_APP_URL],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       credentials: true,
     }),

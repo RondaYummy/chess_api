@@ -1,10 +1,11 @@
 import { Controller, Post, Body, Req, Res, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { DatabaseSchema } from './database.schema';
+import { DatabaseSchema } from '../database.schema';
 import { Kysely } from 'kysely';
-import { generateUniqueId } from './utils/ids';
-import { comparePasswords, hashPassword } from './utils/scypto';
+import { generateUniqueId } from '../utils/ids';
+import { comparePasswords, hashPassword } from '../utils/scypto';
+import { Auth } from './auth.decorator';
 
 interface RegisterDto {
   username: string;
@@ -48,20 +49,23 @@ export class AuthController {
   }
 
   @Post('profile')
+  @Auth()
   async profile(
-    @Req() req: FastifyRequest,
+    @Req() req: FastifyRequest & { userTelegramTd: any; },
     @Res() res: FastifyReply
   ) {
     const userId = req.session.userId;
-
-    if (!userId) {
+    if (!userId && !req.userTelegramTd) {
       return res.status(401).send({ message: 'Unauthorized' });
     }
 
     const user = await this.db
       .selectFrom('users')
       .selectAll()
-      .where('id', '=', userId)
+      .where((eb) => eb.or([
+        eb('id', '=', userId),
+        eb('telegramId', '=', req.userTelegramTd)
+      ]))
       .executeTakeFirst();
 
     if (!user) {
@@ -76,6 +80,8 @@ export class AuthController {
         lastName: user.lastName,
         profilePicture: user.profilePicture,
         telegramId: user.telegramId,
+        rating: user.rating,
+        lastGameDate: user.lastGameDate,
       },
     });
   }

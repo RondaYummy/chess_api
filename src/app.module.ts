@@ -7,7 +7,7 @@ import { GameGateway } from './game.gateway';
 import { ChessService } from './chess/chess.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LoggingService } from './logging.service';
-import { AuthController } from './auth.controller';
+import { AuthController } from './auth/auth.controller';
 import { ConfigModule } from '@nestjs/config';
 import { TelegramModule } from './telegram/telegram.module';
 import { StockfishModule } from './stockfish/stockfish.module';
