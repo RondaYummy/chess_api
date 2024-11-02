@@ -52,6 +52,7 @@ export class RatingService {
     const opponentRD = opponent.rd || RatingService.INITIAL_RD;
 
     const { newRating, newRD } = this.calculateNewRating(playerRating, playerRD, opponentRating, opponentRD, result);
+    console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
     await this.db
       .updateTable('users')
