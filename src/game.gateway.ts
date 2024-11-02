@@ -178,6 +178,7 @@ export class GameGateway {
     const time = players[0].time;
     const gameType = players[0].gameType;
 
+    console.log(`Game started ${playerWhite} VS ${playerBlack}`);
     const gameId = await this.chessService.createGame(playerWhite, playerBlack, time, gameType, playWithBot);
 
     const initialBoard = this.chessService.getInitialBoard();
