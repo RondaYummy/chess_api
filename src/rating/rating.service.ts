@@ -5,12 +5,19 @@ import { DatabaseSchema } from 'src/database.schema';
 
 @Injectable()
 export class RatingService {
-  private static readonly INITIAL_RATING = 1500;
+  public static readonly INITIAL_RATING = 1500;
   private static readonly INITIAL_RD = 350;
   private static readonly Q = Math.log(10) / 400;
 
   constructor(@Inject('DB_CONNECTION') private db: Kysely<DatabaseSchema>) {
 
+  }
+
+  initial() {
+    return {
+      rating: RatingService.INITIAL_RATING,
+      RD: RatingService.INITIAL_RD,
+    };
   }
 
   calculateNewRating(
