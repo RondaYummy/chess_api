@@ -44,12 +44,12 @@ export class RatingService {
     const player = await this.db.selectFrom('users').selectAll().where('id', '=', playerId).executeTakeFirst();
     const opponent = await this.db.selectFrom('users').selectAll().where('id', '=', opponentId).executeTakeFirst();
 
-    if (!player || !opponent) throw new Error('Player or opponent not found');
+    if (!player) throw new Error('Player not found');
 
     const playerRating = player.rating || RatingService.INITIAL_RATING;
     const playerRD = player.rd || RatingService.INITIAL_RD;
-    const opponentRating = opponent.rating || RatingService.INITIAL_RATING;
-    const opponentRD = opponent.rd || RatingService.INITIAL_RD;
+    const opponentRating = opponent?.rating || RatingService.INITIAL_RATING;
+    const opponentRD = opponent?.rd || RatingService.INITIAL_RD;
 
     const { newRating, newRD } = this.calculateNewRating(playerRating, playerRD, opponentRating, opponentRD, result);
     console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);

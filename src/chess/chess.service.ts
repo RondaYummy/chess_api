@@ -89,7 +89,7 @@ export class ChessService {
     return this.getGameByPlayerId(playerId);
   }
 
-  async timeLeftGame(game: { id: string; playerWhite: string; playerBlack: string; }, winner: string) {
+  async timeLeftGame(game: { id: string; playerWhite: string; playerBlack: string; isBotGame: boolean; }, winner: string) {
     try {
       const gameEndReason = 'time-out';
       await this.db
@@ -102,6 +102,13 @@ export class ChessService {
         .where('id', '=', game.id)
         .execute();
       console.log(`Час вийшов. Переможець: ${winner}, причина завершення: ${gameEndReason}`);
+      if (gameEndReason && winner && !game.isBotGame) {
+        await this.ratingService.handleGameEnd({
+          ...game,
+          gameEndReason,
+          winner,
+        });
+      }
     } catch (error) {
       console.error(error);
       return false;
