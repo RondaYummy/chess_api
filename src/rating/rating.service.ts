@@ -43,6 +43,8 @@ export class RatingService {
   async updatePlayerRating(playerId: string, opponentId: string, result: number) {
     const player = await this.db.selectFrom('users').selectAll().where('id', '=', playerId).executeTakeFirst();
     const opponent = await this.db.selectFrom('users').selectAll().where('id', '=', opponentId).executeTakeFirst();
+    console.log(player, 'player');
+    console.log(opponent, 'opponent');
 
     const playerRating = player?.rating || RatingService.INITIAL_RATING;
     const playerRD = player?.rd || RatingService.INITIAL_RD;
@@ -67,8 +69,8 @@ export class RatingService {
       .selectAll()
       .where('id', '=', playerId)
       .executeTakeFirst();
-
     console.log(`Після оновлення: ${JSON.stringify(updatedPlayer)}`);
+
     return { newRating, newRD };
   }
 

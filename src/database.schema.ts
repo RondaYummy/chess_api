@@ -38,7 +38,7 @@ export interface DatabaseSchema {
     createdAt: Date;
     updatedAt: Date;
 
-    // 
+    // RATING SYSTEM
     rating: number; // Glicko-рейтинг користувача
     rd: number; // Rating Deviation для системи Glicko
     lastGameDate: Date; // Дата останньої гри
