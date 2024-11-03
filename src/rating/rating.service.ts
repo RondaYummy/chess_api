@@ -62,7 +62,7 @@ export class RatingService {
       }
 
       const { newRating, newRD } = this.calculateNewRating(+playerRating, +playerRD, +opponentRating, +opponentRD, result);
-      console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
+      console.log(`Новий рейтинг для користувача ${playerId} - ${Math.round(newRating)} a RD ${Math.round(newRD)}`);
 
       console.log({
         rating: newRating,
@@ -73,8 +73,8 @@ export class RatingService {
       await this.db
         .updateTable('users')
         .set({
-          rating: newRating,
-          rd: newRD,
+          rating: Math.round(newRating),
+          rd: Math.round(newRD),
           lastGameDate: new Date(),
         })
         .where((eb) => eb.or([
