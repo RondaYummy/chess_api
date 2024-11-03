@@ -53,6 +53,7 @@ export class RatingService {
 
     console.log(playerRating, playerRD, opponentRating, opponentRD, result);
     const { newRating, newRD } = this.calculateNewRating(playerRating, playerRD, opponentRating, opponentRD, result);
+    console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
     await this.db
       .updateTable('users')
@@ -66,7 +67,6 @@ export class RatingService {
         eb('telegramId', '=', +playerId)
       ]))
       .execute();
-    console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
     return { newRating, newRD };
   }
@@ -87,8 +87,10 @@ export class RatingService {
     }
 
     // Оновлюємо рейтинг для обох гравців
-    await this.updatePlayerRating(player1Id, player2Id, result);
-    await this.updatePlayerRating(player2Id, player1Id, 1 - result);
+    await Promise.allSettled([
+      this.updatePlayerRating(player1Id, player2Id, result),
+      this.updatePlayerRating(player2Id, player1Id, 1 - result)
+    ]);
   }
 
 
