@@ -24,6 +24,7 @@ function deploy() {
   # Збірка проекту
   echo "====> Збираємо проект"
   npm run build
+  pm2 stop ecosystem.config.js
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час збірки проекту"
     exit 1
