@@ -187,7 +187,11 @@ export class GameGateway {
     players.forEach(player => {
       const userSocket = this.connectedUsers.find(user => user?.userId === player?.userId);
       if (userSocket) {
-        this.server.sockets.sockets.get(userSocket.socketId)?.join(gameId);
+        const socket = this.server.sockets.sockets.get(userSocket.socketId);
+        socket?.join(gameId);
+        console.log(`User ${player.userId} with socket ${userSocket.socketId} joined room ${gameId}`);
+      } else {
+        console.log(`User ${player.userId} not found in connected users.`);
       }
     });
 
