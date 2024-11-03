@@ -34,6 +34,7 @@ export class GameGateway {
     this.leftUsers = this.leftUsers.filter(user => user.userId !== userId);
 
     const queue = this.queue.find((q) => q.userId === userId);
+    console.log(`[handleConnection]: `, queue);
     if (queue) {
       socket.emit('joinedQueue', queue);
     }
@@ -74,6 +75,7 @@ export class GameGateway {
   @SubscribeMessage('joinQueue')
   handleJoinQueue(@MessageBody() data: { userId: string; gameType: string; time: number; withBot: boolean; }, @ConnectedSocket() client: Socket) {
     console.log('--- JOIN QUEUE ---');
+
     const userId = data.userId;
     const gameType = data.gameType;
 
@@ -86,6 +88,7 @@ export class GameGateway {
     }
 
     const foundUser = this.queue.find((q) => q.gameType === gameType && q.userId === userId);
+    console.log(foundUser);
 
     if (!foundUser) {
       this.queue.push(data);
@@ -217,7 +220,7 @@ export class GameGateway {
     }
     console.log(`Bot move from ${bestMove.from} to ${bestMove.to}`);
 
-    // Застосовуємо хід бота до гри і оновлюємо її стан
+    // Apply the bot's move to the game and update its status
     const moveResult = await this.chessService.handleMove({ ...bestMove, gameId: game.id, userId: game.id }, game);
     if (!moveResult) {
       console.log('Failed to apply bot move');
@@ -226,7 +229,7 @@ export class GameGateway {
     const now = new Date();
     const remainingTime = game.turn === 'black' ? game.timeBlack : game.timeWhite;
 
-    // Оновлення часу для бота
+    // Updating the time for the bot
     await this.chessService.savePlayerTime(game.id, 'timeBlack', remainingTime, 'black', now);
 
     this.server.to(game.id).emit('move', { ...moveResult, remainingTime, currentPlayer: 'white' });
