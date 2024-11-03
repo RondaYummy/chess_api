@@ -27,6 +27,10 @@ export class RatingService {
     opponentRD: number,
     result: number // 1 - перемога, 0 - поразка, 0.5 - нічия
   ) {
+    if (![0, 0.5, 1].includes(result)) {
+      throw new Error("Result must be 0, 0.5, or 1.");
+    }
+
     // Конвертую RD у scale Glicko
     const gOpponent = 1 / Math.sqrt(1 + (3 * RatingService.Q ** 2 * opponentRD ** 2) / Math.PI ** 2);
     const E = 1 / (1 + Math.exp(-gOpponent * (playerRating - opponentRating) / 400));
@@ -52,7 +56,7 @@ export class RatingService {
     const opponentRD = opponent?.rd || RatingService.INITIAL_RD;
 
     console.log(playerRating, playerRD, opponentRating, opponentRD, result);
-    const { newRating, newRD } = this.calculateNewRating(playerRating, playerRD, opponentRating, opponentRD, result);
+    const { newRating, newRD } = this.calculateNewRating(+playerRating, +playerRD, +opponentRating, +opponentRD, result);
     console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
     await this.db
