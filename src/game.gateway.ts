@@ -186,6 +186,7 @@ export class GameGateway {
     // Add both players to the room
     players.forEach(player => {
       const userSocket = this.connectedUsers.find(user => user?.userId === player?.userId);
+      console.log(userSocket, 'userSocketuserSocket');
       if (userSocket) {
         const socket = this.server.sockets.sockets.get(userSocket.socketId);
         socket?.join(gameId);
