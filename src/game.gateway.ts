@@ -178,10 +178,7 @@ export class GameGateway {
     const time = players[0].time;
     const gameType = players[0].gameType;
 
-    console.log(`Game started ${playerWhite} VS ${playerBlack}`);
     const gameId = await this.chessService.createGame(playerWhite, playerBlack, time, gameType, playWithBot);
-
-    const initialBoard = this.chessService.getInitialBoard();
 
     // Add both players to the room
     players.forEach(player => {
@@ -192,7 +189,7 @@ export class GameGateway {
     });
 
     // Send the event only to players in the game room
-    this.server.to(gameId).emit('gameStarted', { players, board: initialBoard, id: gameId });
+    this.server.to(gameId).emit('gameStarted', { id: gameId });
     console.log(`Game ${gameId} started between:`, players);
   }
 

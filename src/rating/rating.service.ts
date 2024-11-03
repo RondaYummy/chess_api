@@ -67,6 +67,7 @@ export class RatingService {
       .execute();
     console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
+    // TODO remove
     const updatedPlayer = await this.db
       .selectFrom('users')
       .selectAll()
