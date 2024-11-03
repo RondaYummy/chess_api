@@ -30,6 +30,15 @@ function deploy() {
   fi
   echo "✅ Проект успішно зібрано"
 
+  # Видаємо дозвола на stockfish
+  echo "====> Даємо дозвола stockfish"
+  chmod +x /root/chess_api/dist/src/stockfish/stockfish-ubuntu-x86-64-avx2
+  if [ $? -ne 0 ]; then
+    echo "❌ Помилка під час видачі дозволів"
+    exit 1
+  fi
+  echo "✅ Дозвола видані"
+
   # Перезапуск PM2
   echo "====> Перезапускаємо PM2"
   pm2 restart ecosystem.config.js
