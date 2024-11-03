@@ -45,45 +45,50 @@ export class RatingService {
    * Оновлює рейтинг та RD для гравця після матчу.
    */
   async updatePlayerRating(playerId: string, opponentId: string, result: number) {
-    const player = await this.db.selectFrom('users').selectAll().where('id', '=', playerId).executeTakeFirst();
-    const opponent = await this.db.selectFrom('users').selectAll().where('id', '=', opponentId).executeTakeFirst();
-    console.log(player, 'player');
-    console.log(opponent, 'opponent');
+    try {
+      const player = await this.db.selectFrom('users').selectAll().where('id', '=', playerId).executeTakeFirst();
+      const opponent = await this.db.selectFrom('users').selectAll().where('id', '=', opponentId).executeTakeFirst();
+      console.log(player, 'player');
+      console.log(opponent, 'opponent');
 
-    const playerRating = player?.rating || RatingService.INITIAL_RATING;
-    const playerRD = player?.rd || RatingService.INITIAL_RD;
-    const opponentRating = opponent?.rating || RatingService.INITIAL_RATING;
-    const opponentRD = opponent?.rd || RatingService.INITIAL_RD;
+      const playerRating = player?.rating || RatingService.INITIAL_RATING;
+      const playerRD = player?.rd || RatingService.INITIAL_RD;
+      const opponentRating = opponent?.rating || RatingService.INITIAL_RATING;
+      const opponentRD = opponent?.rd || RatingService.INITIAL_RD;
 
-    console.log(playerRating, playerRD, opponentRating, opponentRD, result);
-    const { newRating, newRD } = this.calculateNewRating(+playerRating, +playerRD, +opponentRating, +opponentRD, result);
-    console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
+      console.log(playerRating, playerRD, opponentRating, opponentRD, result);
+      const { newRating, newRD } = this.calculateNewRating(+playerRating, +playerRD, +opponentRating, +opponentRD, result);
+      console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
-    await this.db
-      .updateTable('users')
-      .set({
-        rating: newRating,
-        rd: newRD,
-        lastGameDate: new Date(),
-      })
-      .where((eb) => eb.or([
-        eb('id', '=', playerId),
-        eb('telegramId', '=', +playerId)
-      ]))
-      .execute();
+      await this.db
+        .updateTable('users')
+        .set({
+          rating: newRating,
+          rd: newRD,
+          lastGameDate: new Date(),
+        })
+        .where((eb) => eb.or([
+          eb('id', '=', playerId),
+          eb('telegramId', '=', +playerId)
+        ]))
+        .execute();
 
-    // TODO remove
-    const updatedPlayer = await this.db
-      .selectFrom('users')
-      .selectAll()
-      .where((eb) => eb.or([
-        eb('id', '=', playerId),
-        eb('telegramId', '=', +playerId)
-      ]))
-      .executeTakeFirst();
-    console.log(`Після оновлення: ${JSON.stringify(updatedPlayer)}`);
+      // TODO remove
+      const updatedPlayer = await this.db
+        .selectFrom('users')
+        .selectAll()
+        .where((eb) => eb.or([
+          eb('id', '=', playerId),
+          eb('telegramId', '=', +playerId)
+        ]))
+        .executeTakeFirst();
+      console.log(`Після оновлення: ${JSON.stringify(updatedPlayer)}`);
 
-    return { newRating, newRD };
+      return { newRating, newRD };
+    } catch (error) {
+      console.error(error);
+      throw new Error(error);
+    }
   }
 
   async handleGameEnd(game) {
