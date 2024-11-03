@@ -48,14 +48,11 @@ export class RatingService {
     try {
       const player = await this.db.selectFrom('users').selectAll().where('id', '=', playerId).executeTakeFirst();
       const opponent = await this.db.selectFrom('users').selectAll().where('id', '=', opponentId).executeTakeFirst();
-      console.log(player, 'player');
-      console.log(opponent, 'opponent');
 
       const playerRating = Number(player?.rating) ?? RatingService.INITIAL_RATING;
       const playerRD = Number(player?.rd) ?? RatingService.INITIAL_RD;
       const opponentRating = Number(opponent?.rating) ?? RatingService.INITIAL_RATING;
       const opponentRD = Number(opponent?.rd) ?? RatingService.INITIAL_RD;
-      console.log({ playerRating, playerRD, opponentRating, opponentRD, result }, 'Розраховуємо рейтинг з цими значеннями');
 
       if (isNaN(playerRating) || isNaN(playerRD) || isNaN(opponentRating) || isNaN(opponentRD) || isNaN(result)) {
         throw new Error(`Неприпустиме значення: ${JSON.stringify({ playerRating, playerRD, opponentRating, opponentRD, result })}`);
@@ -64,7 +61,6 @@ export class RatingService {
       const { newRating, newRD } = this.calculateNewRating(+playerRating, +playerRD, +opponentRating, +opponentRD, result);
       const roundedRating = Math.round(newRating);
       const roundedRD = Math.round(newRD);
-
       console.log(`Новий рейтинг для користувача ${playerId} - ${roundedRating} a RD ${roundedRD}`);
 
       await this.db
@@ -76,14 +72,6 @@ export class RatingService {
         })
         .where('id', '=', playerId)
         .execute();
-
-      // TODO remove
-      const updatedPlayer = await this.db
-        .selectFrom('users')
-        .selectAll()
-        .where('id', '=', playerId)
-        .executeTakeFirst();
-      console.log(`Після оновлення: ${JSON.stringify(updatedPlayer)}`);
 
       return { newRating, newRD };
     } catch (error) {
@@ -107,7 +95,7 @@ export class RatingService {
       result = 0.5; // нічия
     }
 
-    // Оновлюємо рейтинг для обох гравців
+    // We update the rating for both players
     await Promise.allSettled([
       this.updatePlayerRating(player1Id, player2Id, result),
       this.updatePlayerRating(player2Id, player1Id, 1 - result)
@@ -117,9 +105,9 @@ export class RatingService {
 
   @Cron('0 2 * * *')
   async increaseRDForInactivePlayers() {
-    console.log('Запущено автоматичне підвищення RD для неактивних гравців');
+    console.log('❗️Automatic RD increase for inactive players has been launched❗️');
     const now = new Date();
-    const threshold = new Date(now.setMonth(now.getMonth() - 1)); // 1 місяць неактивності
+    const threshold = new Date(now.setMonth(now.getMonth() - 1)); // 1 month of inactivity
 
     const inactivePlayers = await this.db
       .selectFrom('users')
@@ -128,7 +116,7 @@ export class RatingService {
       .execute();
 
     for (const player of inactivePlayers) {
-      const increasedRD = Math.min(player.rd + 10, RatingService.INITIAL_RD); // Ліміт RD
+      const increasedRD = Math.min(player.rd + 10, RatingService.INITIAL_RD); // RD limit
       await this.db
         .updateTable('users')
         .set({ rd: increasedRD })
