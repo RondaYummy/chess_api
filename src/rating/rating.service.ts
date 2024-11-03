@@ -33,9 +33,9 @@ export class RatingService {
 
     // Конвертую RD у scale Glicko
     const gOpponent = 1 / Math.sqrt(1 + (3 * RatingService.Q ** 2 * opponentRD ** 2) / Math.PI ** 2);
-    const E = 1 / (1 + Math.exp(-gOpponent * (playerRating - opponentRating) / 400));
+    const E = 1 / (1 + Math.exp(-gOpponent * (playerRating - opponentRating) * RatingService.Q));
     const d2 = 1 / (RatingService.Q ** 2 * gOpponent ** 2 * E * (1 - E));
-    const newPlayerRating = playerRating + RatingService.Q / (1 / playerRD ** 2 + 1 / d2) * gOpponent * (result - E);
+    const newPlayerRating = playerRating + (RatingService.Q / (1 / playerRD ** 2 + 1 / d2)) * gOpponent * (result - E);
     const newPlayerRD = Math.sqrt(1 / (1 / playerRD ** 2 + 1 / d2));
 
     return { newRating: newPlayerRating, newRD: newPlayerRD };
