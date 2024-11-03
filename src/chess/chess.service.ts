@@ -80,6 +80,21 @@ export class ChessService {
     return moves; // Повертає moves або null, якщо не знайдено
   }
 
+  async getGamePlayers(whiteUserId: string, blackUserId: string) {
+    const white = await this.db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', '=', whiteUserId)
+      .executeTakeFirst();
+    const black = await this.db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', '=', whiteUserId)
+      .executeTakeFirst();
+
+    return { white, black };
+  }
+
   getInitialBoard(fen?: string): any {
     const chess = new Chess(fen);
     return chess.board();

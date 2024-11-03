@@ -88,7 +88,6 @@ export class GameGateway {
     }
 
     const foundUser = this.queue.find((q) => q.gameType === gameType && q.userId === userId);
-    console.log(foundUser);
 
     if (!foundUser) {
       this.queue.push(data);
@@ -107,6 +106,7 @@ export class GameGateway {
 
     const game = await this.chessService.getGameById(gameId);
     const moves = await this.chessService.getGameMovesByGameId(gameId);
+    const players = await this.chessService.getGamePlayers(game.playerWhite, game.playerBlack);
 
     if (game) {
       console.log(`User subscribed to game ${gameId}`);
@@ -127,7 +127,7 @@ export class GameGateway {
         remainingBlackTime = game['timeBlack'] - elapsed;
       }
 
-      this.server.to(gameId).emit('gameDetails', { game, board, moves, remainingWhiteTime, remainingBlackTime, currentPlayer });
+      this.server.to(gameId).emit('gameDetails', { game, board, moves, remainingWhiteTime, remainingBlackTime, currentPlayer, players });
     } else {
       console.log(`Game ${gameId} not found for subscription.`);
     }
@@ -186,10 +186,6 @@ export class GameGateway {
     // Add both players to the room
     players.forEach(player => {
       const userSocket = this.connectedUsers.find(user => user?.userId === player?.userId);
-      console.log(userSocket, 'userSocketuserSocket');
-      console.log(player?.userId, 'player?.userId');
-      console.log(this.connectedUsers, 'this.connectedUsers');
-
       if (userSocket) {
         const socket = this.server.sockets.sockets.get(userSocket.socketId);
         socket?.join(gameId);
