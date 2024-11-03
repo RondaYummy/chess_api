@@ -74,20 +74,14 @@ export class RatingService {
           rd: roundedRD,
           lastGameDate: new Date(),
         })
-        .where((eb) => eb.or([
-          eb('id', '=', playerId),
-          eb('telegramId', '=', +playerId)
-        ]))
+        .where('id', '=', playerId)
         .execute();
 
       // TODO remove
       const updatedPlayer = await this.db
         .selectFrom('users')
         .selectAll()
-        .where((eb) => eb.or([
-          eb('id', '=', playerId),
-          eb('telegramId', '=', +playerId)
-        ]))
+        .where('id', '=', playerId)
         .executeTakeFirst();
       console.log(`Після оновлення: ${JSON.stringify(updatedPlayer)}`);
 
