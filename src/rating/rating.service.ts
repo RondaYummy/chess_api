@@ -72,6 +72,17 @@ export class RatingService {
       ]))
       .execute();
 
+    // TODO remove
+    const updatedPlayer = await this.db
+      .selectFrom('users')
+      .selectAll()
+      .where((eb) => eb.or([
+        eb('id', '=', playerId),
+        eb('telegramId', '=', +playerId)
+      ]))
+      .executeTakeFirst();
+    console.log(`Після оновлення: ${JSON.stringify(updatedPlayer)}`);
+
     return { newRating, newRD };
   }
 
