@@ -187,6 +187,9 @@ export class GameGateway {
     players.forEach(player => {
       const userSocket = this.connectedUsers.find(user => user?.userId === player?.userId);
       console.log(userSocket, 'userSocketuserSocket');
+      console.log(player?.userId, 'player?.userId');
+      console.log(this.connectedUsers, 'this.connectedUsers');
+
       if (userSocket) {
         const socket = this.server.sockets.sockets.get(userSocket.socketId);
         socket?.join(gameId);
