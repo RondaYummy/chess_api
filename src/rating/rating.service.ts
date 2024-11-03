@@ -51,10 +51,10 @@ export class RatingService {
       console.log(player, 'player');
       console.log(opponent, 'opponent');
 
-      const playerRating = Number(player?.rating) || RatingService.INITIAL_RATING;
-      const playerRD = Number(player?.rd) || RatingService.INITIAL_RD;
-      const opponentRating = Number(opponent?.rating) || RatingService.INITIAL_RATING;
-      const opponentRD = Number(opponent?.rd) || RatingService.INITIAL_RD;
+      const playerRating = Number(player?.rating) ?? RatingService.INITIAL_RATING;
+      const playerRD = Number(player?.rd) ?? RatingService.INITIAL_RD;
+      const opponentRating = Number(opponent?.rating) ?? RatingService.INITIAL_RATING;
+      const opponentRD = Number(opponent?.rd) ?? RatingService.INITIAL_RD;
       console.log({ playerRating, playerRD, opponentRating, opponentRD, result }, 'Розраховуємо рейтинг з цими значеннями');
 
       if (isNaN(playerRating) || isNaN(playerRD) || isNaN(opponentRating) || isNaN(opponentRD) || isNaN(result)) {
@@ -62,19 +62,16 @@ export class RatingService {
       }
 
       const { newRating, newRD } = this.calculateNewRating(+playerRating, +playerRD, +opponentRating, +opponentRD, result);
-      console.log(`Новий рейтинг для користувача ${playerId} - ${Math.round(newRating)} a RD ${Math.round(newRD)}`);
+      const roundedRating = Math.round(newRating);
+      const roundedRD = Math.round(newRD);
 
-      console.log({
-        rating: newRating,
-        rd: newRD,
-        lastGameDate: new Date(),
-      });
+      console.log(`Новий рейтинг для користувача ${playerId} - ${roundedRating} a RD ${roundedRD}`);
 
       await this.db
         .updateTable('users')
         .set({
-          rating: Math.round(newRating),
-          rd: Math.round(newRD),
+          rating: roundedRating,
+          rd: roundedRD,
           lastGameDate: new Date(),
         })
         .where((eb) => eb.or([
