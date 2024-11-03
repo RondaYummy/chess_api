@@ -64,6 +64,12 @@ export class RatingService {
       const { newRating, newRD } = this.calculateNewRating(+playerRating, +playerRD, +opponentRating, +opponentRD, result);
       console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
+      console.log({
+        rating: newRating,
+        rd: newRD,
+        lastGameDate: new Date(),
+      });
+
       await this.db
         .updateTable('users')
         .set({
