@@ -51,6 +51,7 @@ export class RatingService {
     const opponentRating = opponent?.rating || RatingService.INITIAL_RATING;
     const opponentRD = opponent?.rd || RatingService.INITIAL_RD;
 
+    console.log(playerRating, playerRD, opponentRating, opponentRD, result);
     const { newRating, newRD } = this.calculateNewRating(playerRating, playerRD, opponentRating, opponentRD, result);
 
     await this.db
@@ -66,17 +67,6 @@ export class RatingService {
       ]))
       .execute();
     console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
-
-    // TODO remove
-    const updatedPlayer = await this.db
-      .selectFrom('users')
-      .selectAll()
-      .where((eb) => eb.or([
-        eb('id', '=', playerId),
-        eb('telegramId', '=', +playerId)
-      ]))
-      .executeTakeFirst();
-    console.log(`Після оновлення: ${JSON.stringify(updatedPlayer)}`);
 
     return { newRating, newRD };
   }
