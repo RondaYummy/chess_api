@@ -51,12 +51,16 @@ export class RatingService {
       console.log(player, 'player');
       console.log(opponent, 'opponent');
 
-      const playerRating = player?.rating || RatingService.INITIAL_RATING;
-      const playerRD = player?.rd || RatingService.INITIAL_RD;
-      const opponentRating = opponent?.rating || RatingService.INITIAL_RATING;
-      const opponentRD = opponent?.rd || RatingService.INITIAL_RD;
+      const playerRating = Number(player?.rating) || RatingService.INITIAL_RATING;
+      const playerRD = Number(player?.rd) || RatingService.INITIAL_RD;
+      const opponentRating = Number(opponent?.rating) || RatingService.INITIAL_RATING;
+      const opponentRD = Number(opponent?.rd) || RatingService.INITIAL_RD;
+      console.log({ playerRating, playerRD, opponentRating, opponentRD, result }, 'Розраховуємо рейтинг з цими значеннями');
 
-      console.log(playerRating, playerRD, opponentRating, opponentRD, result);
+      if (isNaN(playerRating) || isNaN(playerRD) || isNaN(opponentRating) || isNaN(opponentRD) || isNaN(result)) {
+        throw new Error(`Неприпустиме значення: ${JSON.stringify({ playerRating, playerRD, opponentRating, opponentRD, result })}`);
+      }
+
       const { newRating, newRD } = this.calculateNewRating(+playerRating, +playerRD, +opponentRating, +opponentRD, result);
       console.log(`Новий рейтинг для користувача ${playerId} - ${newRating} a RD ${newRD}`);
 
