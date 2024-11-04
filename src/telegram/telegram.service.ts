@@ -4,7 +4,7 @@ import { Api, Bot, Context, RawApi } from 'grammy';
 import { Kysely } from 'kysely';
 import { DatabaseSchema } from '../database.schema';
 import { RatingService } from '../rating/rating.service';
-import { generateUniqueId } from '../utils/ids';
+import { nanoid } from '../utils/nanoid';
 
 @Injectable()
 export class TelegramService {
@@ -27,7 +27,7 @@ export class TelegramService {
         if (!user) {
           const initialRating = this.ratingService.initial();
           user = await this.db.insertInto('users').values({
-            id: generateUniqueId(),
+            id: await nanoid(),
             createdAt: new Date(),
             telegramId: from.id,
             username: from.username,

@@ -10,6 +10,7 @@ import { ChessService } from './chess/chess.service';
 import { Cron } from '@nestjs/schedule';
 import { isValidFEN } from './utils/ids';
 import { StockfishService } from './stockfish/stockfish.service';
+import { nanoid } from './utils/nanoid';
 
 @WebSocketGateway()
 export class GameGateway {
@@ -239,6 +240,11 @@ export class GameGateway {
     this.server.to(game.id).emit('move', { ...moveResult, remainingTime, currentPlayer: 'white' });
   }
 
+  @SubscribeMessage('getUserId')
+  async getUserId() {
+    const id = await nanoid();
+    this.server.emit('getUserId', { id });
+  }
 
   @Cron('*/5 * * * * *')
   handleGameCheck() {

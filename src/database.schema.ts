@@ -1,6 +1,6 @@
 export interface DatabaseSchema {
   chess_games: {
-    id: string; // 'uuid'?
+    id: string; // nanoid
     playerWhite: string;
     playerBlack: string;
     boardState: string; // FEN
@@ -17,8 +17,8 @@ export interface DatabaseSchema {
   };
 
   chess_moves: {
-    id: string; // uuid
-    gameId: string; // uuid
+    id: string; // nanoid
+    gameId: string; // nanoid
     move: string;
     playerId: string; // uuid
     fen: string;

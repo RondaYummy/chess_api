@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { DatabaseSchema } from '../database.schema';
 import { Kysely } from 'kysely';
-import { generateUniqueId } from '../utils/ids';
 import { comparePasswords, hashPassword } from '../utils/scypto';
 import { Auth } from './auth.decorator';
+import { nanoid } from '../utils/nanoid';
 
 interface RegisterDto {
   username: string;
@@ -38,7 +38,7 @@ export class AuthController {
     await this.db
       .insertInto('users')
       .values({
-        id: generateUniqueId(),
+        id: await nanoid(),
         firstName: username,
         password: hashedPassword,
         login,
