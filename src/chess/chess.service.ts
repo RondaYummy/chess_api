@@ -4,6 +4,7 @@ import { DatabaseSchema } from '../database.schema';
 import { generateUniqueId } from '../utils/ids';
 import { Chess } from 'chess.js';
 import { RatingService } from '../rating/rating.service';
+import { nanoid } from 'src/utils/nanoid';
 
 @Injectable()
 export class ChessService {
@@ -11,7 +12,7 @@ export class ChessService {
 
   async createGame(playerWhite: string, playerBlack: string, time: number, gameType: string, playWithBot: boolean = false): Promise<string> {
     try {
-      const gameId = generateUniqueId();
+      const gameId = await nanoid();
       const chess = new Chess();
       const initialFen = chess.fen();
       const initialTime = time || 300000; // 10 min
@@ -237,7 +238,7 @@ export class ChessService {
     await this.db
       .insertInto('chess_moves')
       .values({
-        id: generateUniqueId(),
+        id: await nanoid(),
         gameId: data.gameId,
         move: `${data.from}-${data.to}`,
         fen: chess.fen(),
