@@ -240,12 +240,6 @@ export class GameGateway {
     this.server.to(game.id).emit('move', { ...moveResult, remainingTime, currentPlayer: 'white' });
   }
 
-  @SubscribeMessage('getUserId')
-  async getUserId() {
-    const id = await nanoid();
-    this.server.emit('getUserId', { id });
-  }
-
   @Cron('*/5 * * * * *')
   handleGameCheck() {
     // Group players by game type and time
