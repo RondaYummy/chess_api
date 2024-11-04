@@ -1,10 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
 import { DatabaseSchema } from '../database.schema';
-import { generateUniqueId } from '../utils/ids';
 import { Chess } from 'chess.js';
 import { RatingService } from '../rating/rating.service';
-import { nanoid } from 'src/utils/nanoid';
+import { nanoid } from '../utils/nanoid';
 
 @Injectable()
 export class ChessService {
