@@ -20,13 +20,13 @@ export interface DatabaseSchema {
     id: string; // nanoid
     gameId: string; // nanoid
     move: string;
-    playerId: string; // uuid
+    playerId: string; // nanoid
     fen: string;
     createdAt: Date;
   };
 
   users: {
-    id: string; // uuid
+    id: string; // nanoid
     telegramId: number;
     username: string | null;
     login: string | null;
