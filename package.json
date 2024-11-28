@@ -37,7 +37,7 @@
     "connect-redis": "^7.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "fastify": "^4.28.1",
+    "fastify": "^5.1.0",
     "fastify-session": "^5.2.1",
     "grammy": "^1.31.0",
     "ioredis": "^5.4.1",
